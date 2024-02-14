@@ -96,6 +96,9 @@ const MaybeDisconnectedLabel = (props: {
 export default function Overview() {
   const { setPaused } = useContext(AppContext);
   const [data, setData] = useState({} as { [name: string]: RobotStatus });
+
+  const [ousterHealthData, setOusterHealthData] = useState({frequency: 0, std: 0, packet_size: 0});
+
   const [manageMode, setManageMode] = useState(false);
   const { idToken } = useContext(IdTokenContext);
   const classes = useStyles();
@@ -190,6 +193,23 @@ export default function Overview() {
         });
       },
       [data]
+    )
+  );
+
+  useRobofleetMsgListener(
+    matchTopicAnyNamespace('ouster_status'),
+    useCallback(
+        (buf, match) => {
+            const status = fb.amrl_msgs.SensorStatus.getRootAsSensorStatus(
+                buf
+            );
+            setOusterHealthData({
+                frequency: status.frequency(),
+                std: status.std(),
+                packet_size: status.packetSize()
+            })
+        },
+        [ousterHealthData]
     )
   );
 
@@ -288,35 +308,9 @@ export default function Overview() {
       <NavBar />
       <Box height="2em" />
       <Container component="main" maxWidth="md">
-        <Box
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Typography
-            variant="h4"
-            component="h2"
-            style={{ marginBottom: '0.25em' }}
-          >
-            Robots
-          </Typography>
-          <Button
-            style={{ marginBottom: '1em' }}
-            variant="contained"
-            color={manageMode ? 'primary' : 'default'}
-            onClick={(e) => setManageMode(!manageMode)}
-          >
-            Manage
-          </Button>
-        </Box>
-        <TableContainer component={Paper}>
-          <Table>
-            {tableHead}
-            <TableBody>{items}</TableBody>
-          </Table>
-        </TableContainer>
+        <p>frequency: {ousterHealthData.frequency}</p>
+        <p>packet size: {ousterHealthData.packet_size}</p>
+        <p>std: {ousterHealthData.std}</p>
       </Container>
     </>
   );
