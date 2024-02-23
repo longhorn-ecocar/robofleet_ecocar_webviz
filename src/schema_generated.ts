@@ -1213,224 +1213,9 @@ static endHeader(builder:flatbuffers.Builder):flatbuffers.Offset {
 /**
  * @constructor
  */
-<<<<<<< HEAD
-export namespace fb.amrl_msgs {
-  export class ErrorReport {
-    bb: flatbuffers.ByteBuffer | null = null;
-
-    bb_pos: number = 0;
-    /**
-     * @param number i
-     * @param flatbuffers.ByteBuffer bb
-     * @returns ErrorReport
-     */
-    __init(i: number, bb: flatbuffers.ByteBuffer): ErrorReport {
-      this.bb_pos = i;
-      this.bb = bb;
-      return this;
-    }
-
-    /**
-     * @param flatbuffers.ByteBuffer bb
-     * @param ErrorReport= obj
-     * @returns ErrorReport
-     */
-    static getRootAsErrorReport(
-      bb: flatbuffers.ByteBuffer,
-      obj?: ErrorReport
-    ): ErrorReport {
-      return (obj || new ErrorReport()).__init(
-        bb.readInt32(bb.position()) + bb.position(),
-        bb
-      );
-    }
-
-    /**
-     * @param flatbuffers.ByteBuffer bb
-     * @param ErrorReport= obj
-     * @returns ErrorReport
-     */
-    static getSizePrefixedRootAsErrorReport(
-      bb: flatbuffers.ByteBuffer,
-      obj?: ErrorReport
-    ): ErrorReport {
-      bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-      return (obj || new ErrorReport()).__init(
-        bb.readInt32(bb.position()) + bb.position(),
-        bb
-      );
-    }
-
-    /**
-     * @param fb.MsgMetadata= obj
-     * @returns fb.MsgMetadata|null
-     */
-    _metadata(obj?: fb.MsgMetadata): fb.MsgMetadata | null {
-      var offset = this.bb!.__offset(this.bb_pos, 4);
-      return offset
-        ? (obj || new fb.MsgMetadata()).__init(
-            this.bb!.__indirect(this.bb_pos + offset),
-            this.bb!
-          )
-        : null;
-    }
-
-    /**
-     * @param fb.std_msgs.Header= obj
-     * @returns fb.std_msgs.Header|null
-     */
-    header(obj?: fb.std_msgs.Header): fb.std_msgs.Header | null {
-      var offset = this.bb!.__offset(this.bb_pos, 6);
-      return offset
-        ? (obj || new fb.std_msgs.Header()).__init(
-            this.bb!.__indirect(this.bb_pos + offset),
-            this.bb!
-          )
-        : null;
-    }
-
-    /**
-     * @param fb.std_msgs.Header= obj
-     * @returns fb.std_msgs.Header|null
-     */
-    laserHeader(obj?: fb.std_msgs.Header): fb.std_msgs.Header | null {
-      var offset = this.bb!.__offset(this.bb_pos, 8);
-      return offset
-        ? (obj || new fb.std_msgs.Header()).__init(
-            this.bb!.__indirect(this.bb_pos + offset),
-            this.bb!
-          )
-        : null;
-    }
-
-    /**
-     * @returns number
-     */
-    severityLevel(): number {
-      var offset = this.bb!.__offset(this.bb_pos, 10);
-      return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
-    }
-
-    /**
-     * @returns number
-     */
-    failedSubsystem(): number {
-      var offset = this.bb!.__offset(this.bb_pos, 12);
-      return offset ? this.bb!.readUint8(this.bb_pos + offset) : 0;
-    }
-
-    /**
-     * @param flatbuffers.Encoding= optionalEncoding
-     * @returns string|Uint8Array|null
-     */
-    detailedErrorMsg(): string | null;
-    detailedErrorMsg(
-      optionalEncoding: flatbuffers.Encoding
-    ): string | Uint8Array | null;
-    detailedErrorMsg(optionalEncoding?: any): string | Uint8Array | null {
-      var offset = this.bb!.__offset(this.bb_pos, 14);
-      return offset
-        ? this.bb!.__string(this.bb_pos + offset, optionalEncoding)
-        : null;
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     */
-    static startErrorReport(builder: flatbuffers.Builder) {
-      builder.startObject(6);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @param flatbuffers.Offset _metadataOffset
-     */
-    static add_Metadata(
-      builder: flatbuffers.Builder,
-      _metadataOffset: flatbuffers.Offset
-    ) {
-      builder.addFieldOffset(0, _metadataOffset, 0);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @param flatbuffers.Offset headerOffset
-     */
-    static addHeader(
-      builder: flatbuffers.Builder,
-      headerOffset: flatbuffers.Offset
-    ) {
-      builder.addFieldOffset(1, headerOffset, 0);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @param flatbuffers.Offset laserHeaderOffset
-     */
-    static addLaserHeader(
-      builder: flatbuffers.Builder,
-      laserHeaderOffset: flatbuffers.Offset
-    ) {
-      builder.addFieldOffset(2, laserHeaderOffset, 0);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @param number severityLevel
-     */
-    static addSeverityLevel(
-      builder: flatbuffers.Builder,
-      severityLevel: number
-    ) {
-      builder.addFieldInt8(3, severityLevel, 0);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @param number failedSubsystem
-     */
-    static addFailedSubsystem(
-      builder: flatbuffers.Builder,
-      failedSubsystem: number
-    ) {
-      builder.addFieldInt8(4, failedSubsystem, 0);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @param flatbuffers.Offset detailedErrorMsgOffset
-     */
-    static addDetailedErrorMsg(
-      builder: flatbuffers.Builder,
-      detailedErrorMsgOffset: flatbuffers.Offset
-    ) {
-      builder.addFieldOffset(5, detailedErrorMsgOffset, 0);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @returns flatbuffers.Offset
-     */
-    static endErrorReport(builder: flatbuffers.Builder): flatbuffers.Offset {
-      var offset = builder.endObject();
-      builder.requiredField(offset, 6); // header
-      builder.requiredField(offset, 8); // laser_header
-      builder.requiredField(offset, 14); // detailed_error_msg
-      return offset;
-    }
-  }
-}
-/**
- * @constructor
- */
-export namespace fb.amrl_msgs {
-  export class Pose2Df {
-    bb: flatbuffers.ByteBuffer | null = null;
-=======
 export namespace fb.amrl_msgs{
 export class ErrorReport {
   bb: flatbuffers.ByteBuffer|null = null;
->>>>>>> dev
 
   bb_pos:number = 0;
 /**
@@ -1901,17 +1686,20 @@ header(obj?:fb.std_msgs.Header):fb.std_msgs.Header|null {
 };
 
 /**
- * @returns number
+ * @param flatbuffers.Encoding= optionalEncoding
+ * @returns string|Uint8Array|null
  */
-frequency():number {
+sensorid():string|null
+sensorid(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+sensorid(optionalEncoding?:any):string|Uint8Array|null {
   var offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 };
 
 /**
  * @returns number
  */
-std():number {
+frequency():number {
   var offset = this.bb!.__offset(this.bb_pos, 10);
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
 };
@@ -1919,16 +1707,32 @@ std():number {
 /**
  * @returns number
  */
-packetSize():number {
+std():number {
   var offset = this.bb!.__offset(this.bb_pos, 12);
   return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
+};
+
+/**
+ * @returns number
+ */
+packetSize():number {
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.readFloat32(this.bb_pos + offset) : 0.0;
+};
+
+/**
+ * @returns number
+ */
+status():number {
+  var offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : 0;
 };
 
 /**
  * @param flatbuffers.Builder builder
  */
 static startSensorStatus(builder:flatbuffers.Builder) {
-  builder.startObject(5);
+  builder.startObject(7);
 };
 
 /**
@@ -1949,10 +1753,18 @@ static addHeader(builder:flatbuffers.Builder, headerOffset:flatbuffers.Offset) {
 
 /**
  * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset sensoridOffset
+ */
+static addSensorid(builder:flatbuffers.Builder, sensoridOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, sensoridOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
  * @param number frequency
  */
 static addFrequency(builder:flatbuffers.Builder, frequency:number) {
-  builder.addFieldFloat32(2, frequency, 0.0);
+  builder.addFieldFloat32(3, frequency, 0.0);
 };
 
 /**
@@ -1960,7 +1772,7 @@ static addFrequency(builder:flatbuffers.Builder, frequency:number) {
  * @param number std
  */
 static addStd(builder:flatbuffers.Builder, std:number) {
-  builder.addFieldFloat32(3, std, 0.0);
+  builder.addFieldFloat32(4, std, 0.0);
 };
 
 /**
@@ -1968,7 +1780,15 @@ static addStd(builder:flatbuffers.Builder, std:number) {
  * @param number packetSize
  */
 static addPacketSize(builder:flatbuffers.Builder, packetSize:number) {
-  builder.addFieldFloat32(4, packetSize, 0.0);
+  builder.addFieldFloat32(5, packetSize, 0.0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number status
+ */
+static addStatus(builder:flatbuffers.Builder, status:number) {
+  builder.addFieldInt8(6, status, 0);
 };
 
 /**
@@ -1976,6 +1796,535 @@ static addPacketSize(builder:flatbuffers.Builder, packetSize:number) {
  * @returns flatbuffers.Offset
  */
 static endSensorStatus(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  builder.requiredField(offset, 6); // header
+  builder.requiredField(offset, 8); // sensorid
+  return offset;
+};
+
+}
+}
+/**
+ * @constructor
+ */
+export namespace fb.amrl_msgs{
+export class SensorHealth {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns SensorHealth
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):SensorHealth {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param SensorHealth= obj
+ * @returns SensorHealth
+ */
+static getRootAsSensorHealth(bb:flatbuffers.ByteBuffer, obj?:SensorHealth):SensorHealth {
+  return (obj || new SensorHealth()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param SensorHealth= obj
+ * @returns SensorHealth
+ */
+static getSizePrefixedRootAsSensorHealth(bb:flatbuffers.ByteBuffer, obj?:SensorHealth):SensorHealth {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new SensorHealth()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param fb.MsgMetadata= obj
+ * @returns fb.MsgMetadata|null
+ */
+_metadata(obj?:fb.MsgMetadata):fb.MsgMetadata|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new fb.MsgMetadata()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param fb.std_msgs.Header= obj
+ * @returns fb.std_msgs.Header|null
+ */
+header(obj?:fb.std_msgs.Header):fb.std_msgs.Header|null {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? (obj || new fb.std_msgs.Header()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param number index
+ * @param fb.amrl_msgs.SensorStatus= obj
+ * @returns fb.amrl_msgs.SensorStatus
+ */
+healths(index: number, obj?:fb.amrl_msgs.SensorStatus):fb.amrl_msgs.SensorStatus|null {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? (obj || new fb.amrl_msgs.SensorStatus()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+healthsLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startSensorHealth(builder:flatbuffers.Builder) {
+  builder.startObject(3);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset _metadataOffset
+ */
+static add_Metadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, _metadataOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset headerOffset
+ */
+static addHeader(builder:flatbuffers.Builder, headerOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, headerOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset healthsOffset
+ */
+static addHealths(builder:flatbuffers.Builder, healthsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, healthsOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createHealthsVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startHealthsVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endSensorHealth(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  builder.requiredField(offset, 6); // header
+  builder.requiredField(offset, 8); // healths
+  return offset;
+};
+
+}
+}
+/**
+ * @constructor
+ */
+export namespace fb.amrl_msgs{
+export class SystemHealth {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns SystemHealth
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):SystemHealth {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param SystemHealth= obj
+ * @returns SystemHealth
+ */
+static getRootAsSystemHealth(bb:flatbuffers.ByteBuffer, obj?:SystemHealth):SystemHealth {
+  return (obj || new SystemHealth()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param SystemHealth= obj
+ * @returns SystemHealth
+ */
+static getSizePrefixedRootAsSystemHealth(bb:flatbuffers.ByteBuffer, obj?:SystemHealth):SystemHealth {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new SystemHealth()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param fb.MsgMetadata= obj
+ * @returns fb.MsgMetadata|null
+ */
+_metadata(obj?:fb.MsgMetadata):fb.MsgMetadata|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new fb.MsgMetadata()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param fb.std_msgs.Header= obj
+ * @returns fb.std_msgs.Header|null
+ */
+header(obj?:fb.std_msgs.Header):fb.std_msgs.Header|null {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? (obj || new fb.std_msgs.Header()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+pcmPropulsion():number {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns number
+ */
+pcmHighvoltage():number {
+  var offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns number
+ */
+cavLongitudinal():number {
+  var offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns number
+ */
+cavLateral():number {
+  var offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns number
+ */
+cavV2x():number {
+  var offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startSystemHealth(builder:flatbuffers.Builder) {
+  builder.startObject(7);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset _metadataOffset
+ */
+static add_Metadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, _metadataOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset headerOffset
+ */
+static addHeader(builder:flatbuffers.Builder, headerOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, headerOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number pcmPropulsion
+ */
+static addPcmPropulsion(builder:flatbuffers.Builder, pcmPropulsion:number) {
+  builder.addFieldInt8(2, pcmPropulsion, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number pcmHighvoltage
+ */
+static addPcmHighvoltage(builder:flatbuffers.Builder, pcmHighvoltage:number) {
+  builder.addFieldInt8(3, pcmHighvoltage, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number cavLongitudinal
+ */
+static addCavLongitudinal(builder:flatbuffers.Builder, cavLongitudinal:number) {
+  builder.addFieldInt8(4, cavLongitudinal, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number cavLateral
+ */
+static addCavLateral(builder:flatbuffers.Builder, cavLateral:number) {
+  builder.addFieldInt8(5, cavLateral, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number cavV2x
+ */
+static addCavV2x(builder:flatbuffers.Builder, cavV2x:number) {
+  builder.addFieldInt8(6, cavV2x, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endSystemHealth(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  builder.requiredField(offset, 6); // header
+  return offset;
+};
+
+}
+}
+/**
+ * @constructor
+ */
+export namespace fb.amrl_msgs{
+export class SystemLog {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns SystemLog
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):SystemLog {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param SystemLog= obj
+ * @returns SystemLog
+ */
+static getRootAsSystemLog(bb:flatbuffers.ByteBuffer, obj?:SystemLog):SystemLog {
+  return (obj || new SystemLog()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param SystemLog= obj
+ * @returns SystemLog
+ */
+static getSizePrefixedRootAsSystemLog(bb:flatbuffers.ByteBuffer, obj?:SystemLog):SystemLog {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new SystemLog()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param fb.MsgMetadata= obj
+ * @returns fb.MsgMetadata|null
+ */
+_metadata(obj?:fb.MsgMetadata):fb.MsgMetadata|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new fb.MsgMetadata()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param fb.std_msgs.Header= obj
+ * @returns fb.std_msgs.Header|null
+ */
+header(obj?:fb.std_msgs.Header):fb.std_msgs.Header|null {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? (obj || new fb.std_msgs.Header()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param flatbuffers.Encoding= optionalEncoding
+ * @returns string|Uint8Array|null
+ */
+log():string|null
+log(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+log(optionalEncoding?:any):string|Uint8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startSystemLog(builder:flatbuffers.Builder) {
+  builder.startObject(3);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset _metadataOffset
+ */
+static add_Metadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, _metadataOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset headerOffset
+ */
+static addHeader(builder:flatbuffers.Builder, headerOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, headerOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset logOffset
+ */
+static addLog(builder:flatbuffers.Builder, logOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, logOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endSystemLog(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  builder.requiredField(offset, 6); // header
+  builder.requiredField(offset, 8); // log
+  return offset;
+};
+
+}
+}
+/**
+ * @constructor
+ */
+export namespace fb.amrl_msgs{
+export class CACCStatus {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns CACCStatus
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):CACCStatus {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param CACCStatus= obj
+ * @returns CACCStatus
+ */
+static getRootAsCACCStatus(bb:flatbuffers.ByteBuffer, obj?:CACCStatus):CACCStatus {
+  return (obj || new CACCStatus()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param CACCStatus= obj
+ * @returns CACCStatus
+ */
+static getSizePrefixedRootAsCACCStatus(bb:flatbuffers.ByteBuffer, obj?:CACCStatus):CACCStatus {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new CACCStatus()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param fb.MsgMetadata= obj
+ * @returns fb.MsgMetadata|null
+ */
+_metadata(obj?:fb.MsgMetadata):fb.MsgMetadata|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new fb.MsgMetadata()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param fb.std_msgs.Header= obj
+ * @returns fb.std_msgs.Header|null
+ */
+header(obj?:fb.std_msgs.Header):fb.std_msgs.Header|null {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? (obj || new fb.std_msgs.Header()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+status():number {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startCACCStatus(builder:flatbuffers.Builder) {
+  builder.startObject(3);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset _metadataOffset
+ */
+static add_Metadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, _metadataOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset headerOffset
+ */
+static addHeader(builder:flatbuffers.Builder, headerOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, headerOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number status
+ */
+static addStatus(builder:flatbuffers.Builder, status:number) {
+  builder.addFieldInt8(2, status, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endCACCStatus(builder:flatbuffers.Builder):flatbuffers.Offset {
   var offset = builder.endObject();
   builder.requiredField(offset, 6); // header
   return offset;
@@ -4789,163 +5138,9 @@ static createQuaternion(builder:flatbuffers.Builder, _metadataOffset:flatbuffers
 /**
  * @constructor
  */
-<<<<<<< HEAD
-export namespace fb.geometry_msgs {
-  export class PoseWithCovarianceStamped {
-    bb: flatbuffers.ByteBuffer | null = null;
-
-    bb_pos: number = 0;
-    /**
-     * @param number i
-     * @param flatbuffers.ByteBuffer bb
-     * @returns PoseWithCovarianceStamped
-     */
-    __init(i: number, bb: flatbuffers.ByteBuffer): PoseWithCovarianceStamped {
-      this.bb_pos = i;
-      this.bb = bb;
-      return this;
-    }
-
-    /**
-     * @param flatbuffers.ByteBuffer bb
-     * @param PoseWithCovarianceStamped= obj
-     * @returns PoseWithCovarianceStamped
-     */
-    static getRootAsPoseWithCovarianceStamped(
-      bb: flatbuffers.ByteBuffer,
-      obj?: PoseWithCovarianceStamped
-    ): PoseWithCovarianceStamped {
-      return (obj || new PoseWithCovarianceStamped()).__init(
-        bb.readInt32(bb.position()) + bb.position(),
-        bb
-      );
-    }
-
-    /**
-     * @param flatbuffers.ByteBuffer bb
-     * @param PoseWithCovarianceStamped= obj
-     * @returns PoseWithCovarianceStamped
-     */
-    static getSizePrefixedRootAsPoseWithCovarianceStamped(
-      bb: flatbuffers.ByteBuffer,
-      obj?: PoseWithCovarianceStamped
-    ): PoseWithCovarianceStamped {
-      bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
-      return (obj || new PoseWithCovarianceStamped()).__init(
-        bb.readInt32(bb.position()) + bb.position(),
-        bb
-      );
-    }
-
-    /**
-     * @param fb.MsgMetadata= obj
-     * @returns fb.MsgMetadata|null
-     */
-    _metadata(obj?: fb.MsgMetadata): fb.MsgMetadata | null {
-      var offset = this.bb!.__offset(this.bb_pos, 4);
-      return offset
-        ? (obj || new fb.MsgMetadata()).__init(
-            this.bb!.__indirect(this.bb_pos + offset),
-            this.bb!
-          )
-        : null;
-    }
-
-    /**
-     * @param fb.std_msgs.Header= obj
-     * @returns fb.std_msgs.Header|null
-     */
-    header(obj?: fb.std_msgs.Header): fb.std_msgs.Header | null {
-      var offset = this.bb!.__offset(this.bb_pos, 6);
-      return offset
-        ? (obj || new fb.std_msgs.Header()).__init(
-            this.bb!.__indirect(this.bb_pos + offset),
-            this.bb!
-          )
-        : null;
-    }
-
-    /**
-     * @param fb.geometry_msgs.PoseWithCovariance= obj
-     * @returns fb.geometry_msgs.PoseWithCovariance|null
-     */
-    pose(
-      obj?: fb.geometry_msgs.PoseWithCovariance
-    ): fb.geometry_msgs.PoseWithCovariance | null {
-      var offset = this.bb!.__offset(this.bb_pos, 8);
-      return offset
-        ? (obj || new fb.geometry_msgs.PoseWithCovariance()).__init(
-            this.bb!.__indirect(this.bb_pos + offset),
-            this.bb!
-          )
-        : null;
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     */
-    static startPoseWithCovarianceStamped(builder: flatbuffers.Builder) {
-      builder.startObject(3);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @param flatbuffers.Offset _metadataOffset
-     */
-    static add_Metadata(
-      builder: flatbuffers.Builder,
-      _metadataOffset: flatbuffers.Offset
-    ) {
-      builder.addFieldOffset(0, _metadataOffset, 0);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @param flatbuffers.Offset headerOffset
-     */
-    static addHeader(
-      builder: flatbuffers.Builder,
-      headerOffset: flatbuffers.Offset
-    ) {
-      builder.addFieldOffset(1, headerOffset, 0);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @param flatbuffers.Offset poseOffset
-     */
-    static addPose(
-      builder: flatbuffers.Builder,
-      poseOffset: flatbuffers.Offset
-    ) {
-      builder.addFieldOffset(2, poseOffset, 0);
-    }
-
-    /**
-     * @param flatbuffers.Builder builder
-     * @returns flatbuffers.Offset
-     */
-    static endPoseWithCovarianceStamped(
-      builder: flatbuffers.Builder
-    ): flatbuffers.Offset {
-      var offset = builder.endObject();
-      builder.requiredField(offset, 6); // header
-      builder.requiredField(offset, 8); // pose
-      return offset;
-    }
-  }
-}
-/**
- * @constructor
- */
-export namespace fb.geometry_msgs {
-  export class Vector3 {
-    bb: flatbuffers.ByteBuffer | null = null;
-=======
 export namespace fb.geometry_msgs{
 export class Pose {
   bb: flatbuffers.ByteBuffer|null = null;
->>>>>>> dev
 
   bb_pos:number = 0;
 /**

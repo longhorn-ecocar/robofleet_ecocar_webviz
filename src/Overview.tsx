@@ -97,7 +97,11 @@ export default function Overview() {
   const { setPaused } = useContext(AppContext);
   const [data, setData] = useState({} as { [name: string]: RobotStatus });
 
-  const [ousterHealthData, setOusterHealthData] = useState({frequency: 0, std: 0, packet_size: 0});
+  const [systemLog, setSystemLog] = useState<fb.amrl_msgs.SystemLog[]>([]);
+  const [sensorHealth, setSensorHealth] = useState<fb.amrl_msgs.SensorHealth | null>(null)
+  const [sensorStatuses, setSensorStatuses] = useState<fb.amrl_msgs.SensorStatus[]>([]);
+  const [caccStatus, setCaccStatus] = useState<fb.amrl_msgs.CACCStatus | null>(null)
+  const [systemHealth, setSystemHealth] = useState<fb.amrl_msgs.SystemHealth | null>(null);
 
   const [manageMode, setManageMode] = useState(false);
   const { idToken } = useContext(IdTokenContext);
@@ -197,19 +201,62 @@ export default function Overview() {
   );
 
   useRobofleetMsgListener(
-    matchTopicAnyNamespace('ouster_status'),
+    matchTopicAnyNamespace('system_log'),
     useCallback(
         (buf, match) => {
-            const status = fb.amrl_msgs.SensorStatus.getRootAsSensorStatus(
+            const status = fb.amrl_msgs.SystemLog.getRootAsSystemLog(
                 buf
             );
-            setOusterHealthData({
-                frequency: status.frequency(),
-                std: status.std(),
-                packet_size: status.packetSize()
-            })
+            systemLog.push(status);
+            setSystemLog(systemLog);
         },
-        [ousterHealthData]
+        [systemLog]
+    )
+  );
+
+  useRobofleetMsgListener(
+    matchTopicAnyNamespace('system_health'),
+    useCallback(
+        (buf, match) => {
+            const status = fb.amrl_msgs.SystemHealth.getRootAsSystemHealth(
+                buf
+            );
+            setSystemHealth(status);
+        },
+        [systemHealth]
+    )
+  );
+
+  useRobofleetMsgListener(
+    matchTopicAnyNamespace('sensor_health'),
+    useCallback(
+        (buf, match) => {
+            const status = fb.amrl_msgs.SensorHealth.getRootAsSensorHealth(
+                buf
+            );
+            setSensorHealth(status)
+            if (status) {
+                const sensorStatusesResult = []
+                for (let i = 0; i < status.healthsLength(); i += 1) {
+                    sensorStatusesResult.push(status.healths(i)!);
+                }
+                setSensorStatuses(sensorStatusesResult);
+            }
+        },
+        [sensorHealth, sensorStatuses]
+    )
+  );
+
+  useRobofleetMsgListener(
+    matchTopicAnyNamespace('cacc_status'),
+    useCallback(
+        (buf, match) => {
+            const status = fb.amrl_msgs.CACCStatus.getRootAsCACCStatus(
+                buf
+            );
+            setCaccStatus(status)
+        },
+        [caccStatus]
     )
   );
 
@@ -303,14 +350,57 @@ export default function Overview() {
     );
   });
 
+  const num_arr = []
+  if(sensorHealth != null) {
+    for (let i = 0; i < sensorHealth?.healthsLength(); i++) {
+        num_arr.push(i);
+    }
+  }
+
   return (
     <>
       <NavBar />
       <Box height="2em" />
       <Container component="main" maxWidth="md">
-        <p>frequency: {ousterHealthData.frequency}</p>
-        <p>packet size: {ousterHealthData.packet_size}</p>
-        <p>std: {ousterHealthData.std}</p>
+        <div>
+            <h1>Sensor Health</h1>
+            {sensorStatuses.map((sensorStatus) => {
+                return <React.Fragment>
+                    <p>SensorID: {sensorStatus.sensorid()}</p>
+                    <p>frequency: {sensorStatus.frequency()}</p>
+                    <p>std: {sensorStatus.std()}</p>
+                    <p>packet length: {sensorStatus.packetSize()}</p>
+                    <p>status: {sensorStatus.status()}</p>
+                </React.Fragment>
+            })}
+        </div>
+        <div>
+            <h1>System Health</h1>
+            {systemHealth && 
+                <React.Fragment>
+                    <p>PCM Propulsion: {systemHealth.pcmPropulsion()}</p>
+                    <p>PCM High Voltage: {systemHealth.pcmHighvoltage()}</p>
+                    <p>CAV Longitudinal: {systemHealth.cavLongitudinal()}</p>
+                    <p>CAV Lateral: {systemHealth.cavLateral()}</p>
+                    <p>CAV V2X1: {systemHealth.cavV2x()}</p>
+                </React.Fragment>
+            }   
+        </div>
+        <div>
+            <h1>CACCStatus</h1>
+            {caccStatus && 
+                <React.Fragment>
+                    <p>Status: {caccStatus.status()}</p>
+                </React.Fragment>
+            }   
+        </div>
+        <div>
+            <h1>System Logs</h1>
+            {systemLog.map((log) => {
+                return <p>{log.log()}</p>
+            })
+            }   
+        </div>
       </Container>
     </>
   );
