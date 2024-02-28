@@ -35,6 +35,9 @@ import config from './config';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import IdTokenContext from './contexts/IdTokenContext';
+import { SensorHealthComponent } from './components/SensorHealth';
+import { SystemHealthComponent } from './components/SystemHealth';
+import { VehicleMonitorComponent } from './components/VehicleMonitor';
 
 dayjs.extend(relativeTime);
 
@@ -66,6 +69,10 @@ const useStyles = makeStyles((theme: Theme) => ({
     '&$disabled': {
       color: theme.palette.text.secondary,
     },
+  },
+  sensorHealthContainer: {
+    maxWidth: '30%',
+    margin: 'auto',
   },
   disabled: {},
 }));
@@ -362,32 +369,25 @@ export default function Overview() {
       <NavBar />
       <Box height="2em" />
       <Container component="main" maxWidth="md">
-        <div>
-            <h1>Sensor Health</h1>
+        <Container className={classes.sensorHealthContainer}>
+            <h2>Sensor Health</h2>
             {sensorStatuses.map((sensorStatus) => {
-                return <React.Fragment>
-                    <p>SensorID: {sensorStatus.sensorid()}</p>
-                    <p>frequency: {sensorStatus.frequency()}</p>
-                    <p>std: {sensorStatus.std()}</p>
-                    <p>packet length: {sensorStatus.packetSize()}</p>
-                    <p>status: {sensorStatus.status()}</p>
-                </React.Fragment>
+                return <SensorHealthComponent 
+                  info_level={1} msg={sensorStatus} key={sensorStatus.sensorid()!}/>
             })}
+          </Container>
+        <div>
+            <h2>Live Vehicle Monitor</h2>
+            <VehicleMonitorComponent info_level={1}/>
         </div>
         <div>
-            <h1>System Health</h1>
+            <h2>System Health</h2>
             {systemHealth && 
-                <React.Fragment>
-                    <p>PCM Propulsion: {systemHealth.pcmPropulsion()}</p>
-                    <p>PCM High Voltage: {systemHealth.pcmHighvoltage()}</p>
-                    <p>CAV Longitudinal: {systemHealth.cavLongitudinal()}</p>
-                    <p>CAV Lateral: {systemHealth.cavLateral()}</p>
-                    <p>CAV V2X1: {systemHealth.cavV2x()}</p>
-                </React.Fragment>
+              <SystemHealthComponent info_level={1} msg={systemHealth} />
             }   
         </div>
         <div>
-            <h1>CACCStatus</h1>
+            <h2>CACCStatus</h2>
             {caccStatus && 
                 <React.Fragment>
                     <p>Status: {caccStatus.status()}</p>
@@ -395,7 +395,7 @@ export default function Overview() {
             }   
         </div>
         <div>
-            <h1>System Logs</h1>
+            <h2>System Logs</h2>
             {systemLog.map((log) => {
                 return <p>{log.log()}</p>
             })

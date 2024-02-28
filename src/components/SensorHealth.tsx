@@ -1,26 +1,49 @@
-// function Sensor_health(info_level, teamSensorStatus, stockSensorStatus) {
-//         if (info_level == 0) {
-//             return null;
-//           }
-//           return SensorStatusComponent(info_level, teamSensorStatus),
-//           SensorStatusComponent(info_level, stockSensorStatusSensorStatus);
-//   }
-
-//   function Sensor_health(info_level, teamSensorStatus, stockSensorStatus) {
-//     if (info_level == 0) {
-//         return null;
-//       }
-//       return SensorStatusComponent(info_level, teamSensorStatus),
-//       SensorStatusComponent(info_level, stockSensorStatusSensorStatus);
-//   }
-  
+import {
+  Card,
+  CardContent,
+  Typography,
+  makeStyles
+} from '@material-ui/core';
+import React from "react";
 import { fb } from '../schema';
+import {getStatusColor} from '../status'
 
-export default function SensorHealthComponent(props: {
+const useStyles = makeStyles({
+  root: (props: any) => ({
+    backgroundColor: props.card_color, // Use a function to set the color dynamically
+  }),
+});
+
+export function SensorHealthComponent(props: {
   info_level: number;
   msg: fb.amrl_msgs.SensorStatus;
 }) {
-  return <div>This is the sensor health component</div>;
+  const { msg } = props;
+  const card_color = getStatusColor(msg.status());
+
+  const classes = useStyles({ card_color });
+
+  return (
+    <Card className={classes.root} variant="outlined">
+      <CardContent>
+        <Typography color="textPrimary" gutterBottom variant="h6">
+          {msg.sensorid()}
+        </Typography>
+        <Typography color="textSecondary">
+          Status: {msg.status()}
+        </Typography>
+        <Typography color="textSecondary">
+          Frequency: {msg.frequency()}Hz
+        </Typography>
+        <Typography color="textSecondary">
+          Standard Deviation: {msg.std()} 
+        </Typography>
+        <Typography color="textSecondary">
+          Packet Size: {msg.packetSize()} Bytes
+        </Typography>
+      </CardContent>
+    </Card>
+  );
 }
 
 //   **SensorHealthComponent (Container for rendering Sensor Health)**
