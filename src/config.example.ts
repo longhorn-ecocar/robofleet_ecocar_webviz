@@ -1,6 +1,6 @@
 export default {
-  // serverUrl: 'ws://localhost:8080',
-  serverUrl: 'ws://localhost:8081',
+  serverUrl: 'ws://localhost:8080',
+  // serverUrl: 'ws://localhost:8081',
   mapUrl: (mapName: string) =>
     `https://amrl.cs.utexas.edu/amrl_maps/${mapName}/${mapName}.vectormap.json`,
   navGraphUrl: (mapName: string) =>

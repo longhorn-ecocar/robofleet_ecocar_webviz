@@ -14,7 +14,7 @@ const useStyles = makeStyles({
     flexDirection: 'row',
     justifyContent: 'space-between', // Distribute space evenly
     alignItems: 'center', // Center-align items horizontally
-    maxWidth: '50%'
+    maxWidth: '100%'
   },
   card: {
     marginRight: 2,
@@ -42,15 +42,6 @@ const useStyles = makeStyles({
     display: 'inline-block',
     marginBottom: 8,
   },
-  green: {
-    backgroundColor: 'green',
-  },
-  red: {
-    backgroundColor: 'red',
-  },
-  yellow: {
-    backgroundColor: 'yellow',
-  },
   background: (props: any) => (
     {
       backgroundColor: props.color
@@ -58,15 +49,14 @@ const useStyles = makeStyles({
   )
 });
 
-const StatusIndicator = ({ color, text }) => {
-  const classes = useStyles();
-
+const StatusIndicator = ({ color, text}: {color: string, text: string}) => {
+  const classes = useStyles({ color });
 
   return (
     <Card className={classes.card}>
       <CardContent className={classes.cardContent}>
         <Typography className={classes.cardTitle} variant="body2">{text}</Typography>      
-        <span className={`${classes.status} ${classes[color]}`} />
+        <span className={`${classes.status} ${classes.background}`} />
       </CardContent>
     </Card>
   );
