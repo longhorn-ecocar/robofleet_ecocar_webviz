@@ -41,14 +41,11 @@ import { SystemHealthComponent } from './components/SystemHealth';
 import { VehicleMonitorComponent } from './components/VehicleMonitor';
 import { CACCStatusComponent } from './components/CACCStatusComponent';
 import { SystemLogComponent } from './components/SystemLog';
+import Toggle from './components/Toggle';
 
 dayjs.extend(relativeTime);
 
 const useStyles = makeStyles((theme: Theme) => ({
-  sensorHealthContainer: {
-    maxWidth: '30%',
-    margin: 'auto',
-  },
   disabled: {},
   leftPanel: {
     background: theme.palette.background.paper,
@@ -91,6 +88,7 @@ export default function Overview() {
   const [caccStatus, setCaccStatus] = useState<fb.amrl_msgs.CACCStatus | null>(null)
   const [systemHealth, setSystemHealth] = useState<fb.amrl_msgs.SystemHealth | null>(null);
   const [vehicleMonitor, setVehicleMonitor] = useState<fb.sensor_msgs.CompressedImage | null>(null);
+  const [showVehicleMonitor, setShowVehicleMonitor] = useState<boolean>(true);
 
   const { idToken } = useContext(IdTokenContext);
   const classes = useStyles();
@@ -160,7 +158,7 @@ export default function Overview() {
   );
 
   useRobofleetMsgListener(
-    matchTopicAnyNamespace('birdseyeview_image'),
+    matchTopicAnyNamespace('left'),
     useCallback(
         (buf, match) => {
             const status = fb.sensor_msgs.CompressedImage.getRootAsCompressedImage(
@@ -179,27 +177,36 @@ export default function Overview() {
     }
   }
 
+  const setToggle = (shouldShowImageViewer: boolean) => {
+    setShowVehicleMonitor(shouldShowImageViewer);
+  };
+
   return (
     <Container maxWidth={false} disableGutters>
+      <Box p={2}>
+        <Toggle label="Show Image Viewer" setToggle={setToggle}/>
+      </Box>
       <Grid container spacing={2}>
-        <Grid item xs={3}>
+        <Grid item xs={showVehicleMonitor ? 3 : 6}>
           <Paper className={classes.leftPanel}>
             <Typography variant="h6">Sensor Health</Typography>
-            {sensorStatuses.map((sensorStatus) => {
+            {sensorStatuses.map((sensorStatus: any) => {
                 return <SensorHealthComponent 
                   info_level={1} msg={sensorStatus} key={sensorStatus.sensorid()!}/>
             })}
           </Paper>
         </Grid>
-        <Grid item xs={6}>
-          <Box className={classes.middlePanel}>
-            <Typography variant="h6">Live Vehicle Monitor</Typography>
-            {vehicleMonitor && 
-              <VehicleMonitorComponent info_level={1} msg={vehicleMonitor}/>
-            }
-          </Box>
-        </Grid>
-        <Grid item xs={3}>
+        {showVehicleMonitor && 
+          <Grid item xs={6}>
+            <Box className={classes.middlePanel}>
+                <Typography variant="h6">Live Vehicle Monitor</Typography>
+                {vehicleMonitor && 
+                <VehicleMonitorComponent info_level={1} msg={vehicleMonitor}/>
+                }
+            </Box>
+          </Grid>
+        }
+        <Grid item xs={showVehicleMonitor ? 3 : 6}>
           <Box className={classes.rightPanel}>
             <Box className={classes.systemHealth}>
               <Typography variant="h6">System Health</Typography>
