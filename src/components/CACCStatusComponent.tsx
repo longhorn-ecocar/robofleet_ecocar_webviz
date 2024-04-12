@@ -4,9 +4,11 @@ import {
     Typography,
     makeStyles
   } from '@material-ui/core';
-  import React from "react";
-  import { fb } from '../schema';
-  import {getStatusColor} from '../status'
+import React, { useState, useCallback } from "react";
+import { fb } from '../schema';
+import {getStatusColor} from '../status'
+import useRobofleetMsgListener from '../hooks/useRobofleetMsgListener';
+import { matchTopicAnyNamespace } from '../util';
   
   const useStyles = makeStyles({
     card: {
@@ -34,18 +36,35 @@ import {
   
   export function CACCStatusComponent(props: {
     info_level: number;
-    msg: fb.amrl_msgs.CACCStatus
   }) {
-    const { msg } = props;
+    const [caccStatus, setCaccStatus] = useState<fb.amrl_msgs.CACCStatus | null>(null)
 
-    const classes = useStyles({ card_color: getStatusColor(msg.status()) });
+    let classes = useStyles({ card_color: "red" });
+    classes = useStyles({ card_color: getStatusColor(caccStatus == null ? 0 : caccStatus.status()) });
+
+    useRobofleetMsgListener(
+        matchTopicAnyNamespace('cacc_status'),
+        useCallback(
+            (buf, match) => {
+                const status = fb.amrl_msgs.CACCStatus.getRootAsCACCStatus(
+                    buf
+                );
+                setCaccStatus(status)
+            },
+            [caccStatus]
+        )
+    );
   
     return (
-      <Card variant="outlined" className={classes.card}>
-        <CardContent className={classes.cardContent}>
-          <span className={`${classes.status} ${classes.background}`} />
-        </CardContent>
-    </Card>
+        <React.Fragment>
+            {caccStatus && 
+                <Card variant="outlined" className={classes.card}>
+                    <CardContent className={classes.cardContent}>
+                    <span className={`${classes.status} ${classes.background}`} />
+                    </CardContent>
+                </Card>
+            }
+        </React.Fragment>
     );
 
     //<CardContent>

@@ -4,9 +4,11 @@ import {
   Typography,
   makeStyles
 } from '@material-ui/core';
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { fb } from '../schema';
 import {getStatusColor} from '../status'
+import useRobofleetMsgListener from '../hooks/useRobofleetMsgListener';
+import { matchTopicAnyNamespace } from '../util';
 
 const useStyles = makeStyles({
   root: (props: any) => ({
@@ -14,7 +16,7 @@ const useStyles = makeStyles({
   }),
 });
 
-export function SensorHealthComponent(props: {
+function SensorStatusComponent(props: {
   info_level: number;
   msg: fb.amrl_msgs.SensorStatus;
 }) {
@@ -44,6 +46,42 @@ export function SensorHealthComponent(props: {
       </CardContent>
     </Card>
   );
+}
+
+export function SensorHealthComponent(props: {
+    info_level: number
+}) {
+  const [sensorHealth, setSensorHealth] = useState<fb.amrl_msgs.SensorHealth | null>(null)
+  const [sensorStatuses, setSensorStatuses] = useState<fb.amrl_msgs.SensorStatus[]>([]);
+
+  useRobofleetMsgListener(
+    matchTopicAnyNamespace('sensor_health'),
+    useCallback(
+        (buf, match) => {
+            const status = fb.amrl_msgs.SensorHealth.getRootAsSensorHealth(
+                buf
+            );
+            setSensorHealth(status)
+            if (status) {
+                const sensorStatusesResult = []
+                for (let i = 0; i < status.healthsLength(); i += 1) {
+                    sensorStatusesResult.push(status.healths(i)!);
+                }
+                setSensorStatuses(sensorStatusesResult);
+            }
+        },
+        [sensorHealth, sensorStatuses]
+    )
+  );
+
+  return (
+    <React.Fragment>
+        {sensorStatuses.map((sensorStatus: any) => {
+            return <SensorStatusComponent 
+                info_level={1} msg={sensorStatus} key={sensorStatus.sensorid()!}/>
+        })}
+    </React.Fragment>
+  )
 }
 
 //   **SensorHealthComponent (Container for rendering Sensor Health)**

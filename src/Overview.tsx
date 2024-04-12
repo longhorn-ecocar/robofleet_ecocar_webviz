@@ -29,9 +29,7 @@ import { Link } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import PercentageDisplay from './components/PercentageDisplay';
 import AppContext from './contexts/AppContext';
-import useRobofleetMsgListener from './hooks/useRobofleetMsgListener';
 import { fb } from './schema';
-import { matchTopicAnyNamespace } from './util';
 import config from './config';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -82,12 +80,6 @@ const useStyles = makeStyles((theme: Theme) => ({
 export default function Overview() {
   const { setPaused } = useContext(AppContext);
 
-  const [systemLog, setSystemLog] = useState<fb.amrl_msgs.SystemLog[]>([]);
-  const [sensorHealth, setSensorHealth] = useState<fb.amrl_msgs.SensorHealth | null>(null)
-  const [sensorStatuses, setSensorStatuses] = useState<fb.amrl_msgs.SensorStatus[]>([]);
-  const [caccStatus, setCaccStatus] = useState<fb.amrl_msgs.CACCStatus | null>(null)
-  const [systemHealth, setSystemHealth] = useState<fb.amrl_msgs.SystemHealth | null>(null);
-  const [vehicleMonitor, setVehicleMonitor] = useState<fb.sensor_msgs.CompressedImage | null>(null);
   const [showVehicleMonitor, setShowVehicleMonitor] = useState<boolean>(true);
 
   const { idToken } = useContext(IdTokenContext);
@@ -97,85 +89,6 @@ export default function Overview() {
     setPaused(false);
   }, [setPaused]);
 
-  useRobofleetMsgListener(
-    matchTopicAnyNamespace('system_log'),
-    useCallback(
-        (buf, match) => {
-            const status = fb.amrl_msgs.SystemLog.getRootAsSystemLog(
-                buf
-            );
-            systemLog.push(status);
-            setSystemLog(systemLog);
-        },
-        [systemLog]
-    )
-  );
-
-  useRobofleetMsgListener(
-    matchTopicAnyNamespace('system_health'),
-    useCallback(
-        (buf, match) => {
-            const status = fb.amrl_msgs.SystemHealth.getRootAsSystemHealth(
-                buf
-            );
-            setSystemHealth(status);
-        },
-        [systemHealth]
-    )
-  );
-
-  useRobofleetMsgListener(
-    matchTopicAnyNamespace('sensor_health'),
-    useCallback(
-        (buf, match) => {
-            const status = fb.amrl_msgs.SensorHealth.getRootAsSensorHealth(
-                buf
-            );
-            setSensorHealth(status)
-            if (status) {
-                const sensorStatusesResult = []
-                for (let i = 0; i < status.healthsLength(); i += 1) {
-                    sensorStatusesResult.push(status.healths(i)!);
-                }
-                setSensorStatuses(sensorStatusesResult);
-            }
-        },
-        [sensorHealth, sensorStatuses]
-    )
-  );
-
-  useRobofleetMsgListener(
-    matchTopicAnyNamespace('cacc_status'),
-    useCallback(
-        (buf, match) => {
-            const status = fb.amrl_msgs.CACCStatus.getRootAsCACCStatus(
-                buf
-            );
-            setCaccStatus(status)
-        },
-        [caccStatus]
-    )
-  );
-
-  useRobofleetMsgListener(
-    matchTopicAnyNamespace('left'),
-    useCallback(
-        (buf, match) => {
-            const status = fb.sensor_msgs.CompressedImage.getRootAsCompressedImage(
-                buf
-            );
-            setVehicleMonitor(status)
-        },
-        [vehicleMonitor]
-    )
-  );
-
-  const num_arr = []
-  if(sensorHealth != null) {
-    for (let i = 0; i < sensorHealth?.healthsLength(); i++) {
-        num_arr.push(i);
-    }
-  }
 
   const setToggle = (shouldShowImageViewer: boolean) => {
     setShowVehicleMonitor(shouldShowImageViewer);
@@ -190,19 +103,14 @@ export default function Overview() {
         <Grid item xs={showVehicleMonitor ? 3 : 6}>
           <Paper className={classes.leftPanel}>
             <Typography variant="h6">Sensor Health</Typography>
-            {sensorStatuses.map((sensorStatus: any) => {
-                return <SensorHealthComponent 
-                  info_level={1} msg={sensorStatus} key={sensorStatus.sensorid()!}/>
-            })}
+            <SensorHealthComponent info_level={1} />
           </Paper>
         </Grid>
         {showVehicleMonitor && 
           <Grid item xs={6}>
             <Box className={classes.middlePanel}>
                 <Typography variant="h6">Live Vehicle Monitor</Typography>
-                {vehicleMonitor && 
-                <VehicleMonitorComponent info_level={1} msg={vehicleMonitor}/>
-                }
+                <VehicleMonitorComponent info_level={1} />
             </Box>
           </Grid>
         }
@@ -210,19 +118,15 @@ export default function Overview() {
           <Box className={classes.rightPanel}>
             <Box className={classes.systemHealth}>
               <Typography variant="h6">System Health</Typography>
-              {systemHealth && 
-                <SystemHealthComponent info_level={1} msg={systemHealth} />
-              }   
+              <SystemHealthComponent info_level={1} />
             </Box>
             <Box className={classes.caccStatus}>
               <Typography variant="h6">CACC Status</Typography>
-              {caccStatus && 
-                <CACCStatusComponent info_level={1} msg={caccStatus} />
-              }
+              <CACCStatusComponent info_level={1} />
             </Box>
             <Box className={classes.systemLogs}>
               <Typography variant="h6">System Logs</Typography>
-              <SystemLogComponent info_level={1} system_logs={systemLog} /> 
+              <SystemLogComponent info_level={1} /> 
             </Box>
           </Box>
         </Grid>

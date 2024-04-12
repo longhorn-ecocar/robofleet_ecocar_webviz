@@ -4,9 +4,11 @@ CardContent,
 Typography, 
 makeStyles 
 } from '@material-ui/core';
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { fb } from '../schema';
 import {getStatusColor} from '../status'
+import useRobofleetMsgListener from '../hooks/useRobofleetMsgListener';
+import { matchTopicAnyNamespace } from '../util';
 
 const useStyles = makeStyles({
   container: {
@@ -64,19 +66,36 @@ const StatusIndicator = ({ color, text}: {color: string, text: string}) => {
 
 export const SystemHealthComponent = (props: {
   info_level: number;
-  msg: fb.amrl_msgs.SystemHealth
 }) => {
-  const { msg } = props;
   const classes = useStyles();
 
+  const [systemHealth, setSystemHealth] = useState<fb.amrl_msgs.SystemHealth | null>(null);
+
+  useRobofleetMsgListener(
+    matchTopicAnyNamespace('system_health'),
+    useCallback(
+        (buf, match) => {
+            const status = fb.amrl_msgs.SystemHealth.getRootAsSystemHealth(
+                buf
+            );
+            setSystemHealth(status);
+        },
+        [systemHealth]
+    )
+  );
+
   return (
-    <div className={classes.container}>
-      <StatusIndicator color={getStatusColor(msg.pcmPropulsion())} text="Propulsion System" />
-      <StatusIndicator color={getStatusColor(msg.pcmHighvoltage())} text="HV System" />
-      <StatusIndicator color={getStatusColor(msg.cavLongitudinal())} text="CAV Long. Control" />
-      <StatusIndicator color={getStatusColor(msg.cavLateral())} text="CAV Lat. Control" />
-      <StatusIndicator color={getStatusColor(msg.cavV2x())} text="CAV V2X" />
-    </div>
+    <React.Fragment>
+        {systemHealth && 
+            <div className={classes.container}>
+                <StatusIndicator color={getStatusColor(systemHealth.pcmPropulsion())} text="Propulsion System" />
+                <StatusIndicator color={getStatusColor(systemHealth.pcmHighvoltage())} text="HV System" />
+                <StatusIndicator color={getStatusColor(systemHealth.cavLongitudinal())} text="CAV Long. Control" />
+                <StatusIndicator color={getStatusColor(systemHealth.cavLateral())} text="CAV Lat. Control" />
+                <StatusIndicator color={getStatusColor(systemHealth.cavV2x())} text="CAV V2X" />
+            </div>
+        }
+    </React.Fragment>
   );
 };
 

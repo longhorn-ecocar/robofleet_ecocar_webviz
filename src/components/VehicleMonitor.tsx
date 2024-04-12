@@ -3,9 +3,11 @@ import {
     CardMedia,
     makeStyles
   } from '@material-ui/core';
-  import React, { useEffect, useRef, useState } from "react";
-  import { fb } from '../schema';
-  import {getStatusColor} from '../status'
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { fb } from '../schema';
+import {getStatusColor} from '../status'
+import useRobofleetMsgListener from '../hooks/useRobofleetMsgListener';
+import { matchTopicAnyNamespace } from '../util';
   // import BEVMockup from '../assets/BEVMockup.png'; // Adjust the path accordingly
   
   const useStyles = makeStyles({
@@ -26,25 +28,63 @@ import {
   
   export function VehicleMonitorComponent(props: {
     info_level: number;
-    msg: fb.sensor_msgs.CompressedImage;
   }) {
     const classes = useStyles({});
-    const { info_level, msg } = props;
+    const { info_level } = props;
 
     const canvas = useRef<HTMLCanvasElement>(null);
     const [size, setSize] = useState([0, 0]);
 
+    const [vehicleMonitor, setVehicleMonitor] = useState<fb.sensor_msgs.CompressedImage | null>(null);
+
+
+    useRobofleetMsgListener(
+        matchTopicAnyNamespace('left'),
+        useCallback(
+            async (buf, match) => {
+                const vehicleMonitor = fb.sensor_msgs.CompressedImage.getRootAsCompressedImage(
+                    buf
+                );
+
+                if (canvas.current === null) return;
+                if (vehicleMonitor == null) return;
+                const ctx = canvas.current.getContext('2d');
+                if (ctx === null) return;
+        
+                // const ci = fb.sensor_msgs.CompressedImage.getRootAsCompressedImage(
+                //   props.data
+                // );
+                const blob = new Blob([vehicleMonitor.dataArray() ?? new Uint8Array()], {
+                type: `image/${vehicleMonitor.format()}`,
+                });
+                const bmp = await window.createImageBitmap(blob);
+                if (size[0] !== bmp.width || size[1] !== bmp.height)
+                setSize([bmp.width, bmp.height]);
+        
+                ctx.clearRect(0, 0, size[0], size[1]);
+                ctx.drawImage(bmp, 0, 0);
+
+                // const status = fb.sensor_msgs.CompressedImage.getRootAsCompressedImage(
+                //     buf
+                // );
+                // setVehicleMonitor(status)
+            },
+            [vehicleMonitor]
+        )
+    );
+
     useEffect(() => {
       (async () => {
         if (canvas.current === null) return;
+        if (vehicleMonitor == null) return;
         const ctx = canvas.current.getContext('2d');
         if (ctx === null) return;
   
         // const ci = fb.sensor_msgs.CompressedImage.getRootAsCompressedImage(
         //   props.data
         // );
-        const blob = new Blob([msg.dataArray() ?? new Uint8Array()], {
-          type: `image/${msg.format()}`,
+        const blob = new Blob([vehicleMonitor.dataArray() ?? new Uint8Array()], {
+          type: `image/${vehicleMonitor.format()}`,
         });
         const bmp = await window.createImageBitmap(blob);
         if (size[0] !== bmp.width || size[1] !== bmp.height)
@@ -53,7 +93,7 @@ import {
         ctx.clearRect(0, 0, size[0], size[1]);
         ctx.drawImage(bmp, 0, 0);
       })();
-    });
+    }, [vehicleMonitor]);
 
     return (
       <canvas
