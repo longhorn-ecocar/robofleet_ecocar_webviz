@@ -17,7 +17,7 @@ import AppContext from './contexts/AppContext';
 import IdTokenContext from './contexts/IdTokenContext';
 
 function App() {
-  const [darkMode, setDarkMode] = useStorage('RobofleetWebviz.darkMode', true);
+  const [darkMode, setDarkMode] = useStorage('RobofleetWebviz.darkMode', false);
   const [paused, setPaused] = useState(false);
   const [idToken, setIdToken] = useStorage<string | null>(
     'RobofleetWebviz.idToken',
