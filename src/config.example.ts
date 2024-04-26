@@ -1,5 +1,5 @@
 export default {
-  serverUrl: 'ws://localhost:' + process.env.ROBOFLEET_SERVER_PORT,
+  serverUrl: 'ws://localhost:' + process.env.REACT_APP_ROBOFLEET_SERVER_PORT,
   // serverUrl: 'ws://localhost:8081',
   mapUrl: (mapName: string) =>
     `https://amrl.cs.utexas.edu/amrl_maps/${mapName}/${mapName}.vectormap.json`,
