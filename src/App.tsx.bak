@@ -51,16 +51,25 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <AppContext.Provider value={appContext}>
-        <WebSocketContext.Provider value={ws}>
-          <IdTokenContext.Provider value={idTokenContext}>
-            <CssBaseline />
-            <Overview />
-          </IdTokenContext.Provider>
-        </WebSocketContext.Provider>
-      </AppContext.Provider>
-    </ThemeProvider>
+    <Overview />
+    {/*<Router basename="/robofleet">
+      <ThemeProvider theme={theme}>
+        <AppContext.Provider value={appContext}>
+          <WebSocketContext.Provider value={ws}>
+            <IdTokenContext.Provider value={idTokenContext}>
+              <CssBaseline />
+              <Switch>
+                <Route exact path="/robot/:id/:tab?" component={Detail} />
+                <Route exact path="/" component={Overview} />
+                <Route>
+                  <Redirect to="/" />
+                </Route>
+              </Switch>
+            </IdTokenContext.Provider>
+          </WebSocketContext.Provider>
+        </AppContext.Provider>
+      </ThemeProvider>
+    </Router>*/}
   );
 }
 
