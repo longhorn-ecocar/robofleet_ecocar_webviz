@@ -36,7 +36,9 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import IdTokenContext from './contexts/IdTokenContext';
 import { SensorHealthComponent } from './components/SensorHealth';
 import { SystemHealthComponent } from './components/SystemHealth';
+import { SystemControlComponent } from './components/SystemControl';
 import { VehicleMonitorComponent } from './components/VehicleMonitor';
+import { UDPSimStatusComponent } from './components/UDPSimStatus';
 import { CACCStatusComponent } from './components/CACCStatusComponent';
 import { SystemLogComponent } from './components/SystemLog';
 import Toggle from './components/Toggle';
@@ -96,8 +98,12 @@ export default function Overview() {
 
   return (
     <Container maxWidth={false} disableGutters>
-      <Box p={2}>
+      <Box p={2} display="flex" alignItems="center">
+        <Typography variant="h5">LEVA Monitor</Typography>
         <Toggle label="Show Image Viewer" setToggle={setToggle}/>
+        <Grid container spacing={1} style={{ marginLeft: 'auto', width: '50%' }}>
+          <SystemHealthComponent info_level={1} />
+        </Grid>
       </Box>
       <Grid container spacing={2}>
         <Grid item xs={showVehicleMonitor ? 3 : 6}>
@@ -106,32 +112,60 @@ export default function Overview() {
             <SensorHealthComponent info_level={1} />
           </Paper>
         </Grid>
-        {showVehicleMonitor && 
+        {/* {showVehicleMonitor && 
           <Grid item xs={6}>
             <Box className={classes.middlePanel}>
                 <Typography variant="h6">Live Vehicle Monitor</Typography>
                 <VehicleMonitorComponent info_level={1} />
             </Box>
           </Grid>
-        }
+        } */}
+
+        <Grid item xs={3}>
+          <Box className={classes.rightPanel}>
+              {/* <Box className={classes.systemHealth}>
+                <Typography variant="h6">System Health</Typography>
+                <SystemHealthComponent info_level={1} />
+              </Box> */}
+              <Box className={classes.caccStatus}>
+                <Typography variant="h6">System Control</Typography>
+              </Box>
+              <Box className={classes.caccStatus}>
+                <Typography variant="subtitle1">Toggle DMS</Typography>
+              </Box>
+              <Box className={classes.caccStatus}>
+                <Typography variant="subtitle1">Toggle CAV Dyno</Typography>
+              </Box>
+              <Box className={classes.caccStatus}>
+                <Typography variant="subtitle1">Request for DYNO status</Typography>
+              </Box>
+              <Box className={classes.caccStatus}>
+                <Typography variant="subtitle1">Object Simulation Status</Typography>
+              </Box>
+              <Box className={classes.systemLogs}>
+                <Typography variant="subtitle1">UDP Simulation Status</Typography>
+                <UDPSimStatusComponent info_level={1} />
+              </Box>
+            </Box>
+        </Grid>
+
         <Grid item xs={showVehicleMonitor ? 3 : 6}>
           <Box className={classes.rightPanel}>
-            <Box className={classes.systemHealth}>
+            {/* <Box className={classes.systemHealth}>
               <Typography variant="h6">System Health</Typography>
               <SystemHealthComponent info_level={1} />
-            </Box>
+            </Box> */}
             <Box className={classes.caccStatus}>
               <Typography variant="h6">CACC Status</Typography>
               <CACCStatusComponent info_level={1} />
             </Box>
             <Box className={classes.systemLogs}>
               <Typography variant="h6">System Logs</Typography>
-              <SystemLogComponent info_level={1} /> 
+                <SystemLogComponent info_level={1} /> 
             </Box>
           </Box>
         </Grid>
       </Grid>
     </Container>
   );
-}
-
+};
