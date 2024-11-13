@@ -39,8 +39,9 @@ import { SystemHealthComponent } from './components/SystemHealth';
 import { SystemControlComponent } from './components/SystemControl';
 import { VehicleMonitorComponent } from './components/VehicleMonitor';
 import { UDPSimStatusComponent } from './components/UDPSimStatus';
-import { CACCStatusComponent } from './components/CACCStatusComponent';
-import { SystemLogComponent } from './components/SystemLog';
+import { CACCStatusComponent } from './components/CACCStatusComponent'; // old test
+import { SystemLogComponent } from './components/SystemLog'; // old test
+import { Dashboard } from './components/Dashboard';
 import Toggle from './components/Toggle';
 
 dayjs.extend(relativeTime);
@@ -50,19 +51,19 @@ const useStyles = makeStyles((theme: Theme) => ({
   leftPanel: {
     background: theme.palette.background.paper,
     padding: theme.spacing(2),
-    height: 'calc(100vh - 64px)', // Assuming NavBar is 64px
+    height: 'calc(100vh - 136px)', // Assuming NavBar is 64px
     overflowY: 'auto', // Make only the left panel scrollable
   },
   middlePanel: {
     position: 'relative', // For absolute positioning of the image or overlay
     padding: theme.spacing(2),
-    height: 'calc(100vh - 64px)',
+    height: 'calc(100vh - 136px)',
     overflowY: 'auto', // Make only the middle panel scrollable
   },
   rightPanel: {
     background: theme.palette.background.paper,
     padding: theme.spacing(2),
-    height: 'calc(100vh - 64px)',
+    height: 'calc(100vh - 136px)',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between', // Distribute space evenly between the items
@@ -72,6 +73,13 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   caccStatus: {
     // Additional styles if necessary
+  },
+  dashboard: {
+    // Additional styles if necessary
+    flexGrow: 1,
+    padding: theme.spacing(1),
+    height: 'calc(100vh - 136px)', // Assuming NavBar is 64px
+    overflowY: 'auto', // Make only the left panel scrollable
   },
   systemLogs: {
     flexGrow: 1, // Allow System Logs to take up remaining space
@@ -101,10 +109,12 @@ export default function Overview() {
       <Box p={2} display="flex" alignItems="center">
         <Typography variant="h5">LEVA Monitor</Typography>
         <Toggle label="Show Image Viewer" setToggle={setToggle}/>
-        <Grid container spacing={1} style={{ marginLeft: 'auto', width: '50%' }}>
+        {/* <Grid container spacing={1} style={{ marginLeft: 'auto', width: '50' }}> */}
           <SystemHealthComponent info_level={1} />
-        </Grid>
       </Box>
+        {/* </Grid> */}
+
+      {/* Sensor Health */}
       <Grid container spacing={2}>
         <Grid item xs={showVehicleMonitor ? 3 : 6}>
           <Paper className={classes.leftPanel}>
@@ -121,8 +131,10 @@ export default function Overview() {
           </Grid>
         } */}
 
+        {/* System Control Panel */}
         <Grid item xs={3}>
-          <Box className={classes.rightPanel}>
+        <Paper className={classes.leftPanel}>
+          <Box className={classes.leftPanel}>
               {/* <Box className={classes.systemHealth}>
                 <Typography variant="h6">System Health</Typography>
                 <SystemHealthComponent info_level={1} />
@@ -147,14 +159,21 @@ export default function Overview() {
                 <UDPSimStatusComponent info_level={1} />
               </Box>
             </Box>
+            </Paper>
         </Grid>
 
-        <Grid item xs={showVehicleMonitor ? 3 : 6}>
-          <Box className={classes.rightPanel}>
-            {/* <Box className={classes.systemHealth}>
+        {/* 4 Panel dashboard (CACC, AIN, LCC, AP)*/}
+        <Box className={classes.dashboard}>
+          <Dashboard/>
+        </Box>
+
+        {/* CACC status placeholder */}
+        {/* <Grid item xs={showVehicleMonitor ? 3 : 6}>
+          /* <Box className={classes.rightPanel}>
+            <Box className={classes.systemHealth}>
               <Typography variant="h6">System Health</Typography>
               <SystemHealthComponent info_level={1} />
-            </Box> */}
+            </Box>
             <Box className={classes.caccStatus}>
               <Typography variant="h6">CACC Status</Typography>
               <CACCStatusComponent info_level={1} />
@@ -163,8 +182,8 @@ export default function Overview() {
               <Typography variant="h6">System Logs</Typography>
                 <SystemLogComponent info_level={1} /> 
             </Box>
-          </Box>
-        </Grid>
+          </Box> 
+        </Grid> */}
       </Grid>
     </Container>
   );

@@ -15,14 +15,15 @@ const useStyles = makeStyles({
     display: 'flex', // Display as an inline block
     flexDirection: 'row',
     justifyContent: 'space-between', // Distribute space evenly
-    alignItems: 'center', // Center-align items horizontally
-    maxWidth: '100%'
+    alignItems: 'right', // Center-align items horizontally
+    maxWidth: '100%',
+    marginLeft: "auto"
   },
   card: {
     marginRight: 2,
     marginBottom: 8,
     width: '100%',
-    height: '8rem', // Set a fixed height
+    height: '6rem', 
     textAlign: 'center',
   },
   cardTitle: {
@@ -38,11 +39,12 @@ const useStyles = makeStyles({
     paddingBottom: 16, // Add padding to the bottom for spacing
   },
   status: {
-    height: 30,
-    width: 30,
+    height: 25,
+    width: 25,
     borderRadius: '50%',
     display: 'inline-block',
-    marginBottom: 8,
+    marginBottom: -8,
+    marginTop: -20
   },
   background: (props: any) => (
     {
@@ -88,7 +90,7 @@ export const SystemHealthComponent = (props: {
     <React.Fragment>
         {systemHealth && 
             <div className={classes.container}>
-                <StatusIndicator color={getStatusColor(systemHealth.pcmPropulsion())} text="Propulsion System" />
+                <StatusIndicator color={getStatusColor(systemHealth.pcmPropulsion())} text="Propulsion System"/>
                 <StatusIndicator color={getStatusColor(systemHealth.pcmHighvoltage())} text="HV System" />
                 <StatusIndicator color={getStatusColor(systemHealth.cavLongitudinal())} text="CAV Long. Control" />
                 <StatusIndicator color={getStatusColor(systemHealth.cavLateral())} text="CAV Lat. Control" />
