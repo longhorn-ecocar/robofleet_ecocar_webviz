@@ -2,7 +2,9 @@ import {
   Card,
   CardContent,
   Typography,
-  makeStyles
+  Grid,
+  makeStyles,
+  Box
 } from '@material-ui/core';
 import React, { useState, useCallback } from "react";
 import { fb } from '../schema';
@@ -12,8 +14,11 @@ import { matchTopicAnyNamespace } from '../util';
 
 const useStyles = makeStyles({
   card: {
-    width: 70,
-    height: 70, // Set a fixed height
+    flexGrow: 1,
+    height: '100%',
+  },
+  cardTitle: {
+    // height: '4rem', // Set a fixed height
   },
   cardContent: {
     width: '100%',
@@ -21,6 +26,14 @@ const useStyles = makeStyles({
     display: 'flex',
     justifyContent: 'center', // Center-align items vertically
     alignItems: 'center', // Center-align items horizontally
+  },
+  container: {
+    display: 'flex', // Display as an inline block
+    flexDirection: 'row',
+    justifyCdontent: 'space-between', // Distribute space evenly
+    alignItems: 'center', // Center-align items horizontally
+    maxWidth: '100%',
+    marginLeft: "auto"
   },
   status: {
     height: 30,
@@ -34,9 +47,10 @@ const useStyles = makeStyles({
   )
 });
 
-export function SystemControlComponent (props: {
-  info_level: number;
-}) {
+export function StatusIndicator(props: {
+  color: string,
+  topic: string,
+  }) {
   const [caccStatus, setCaccStatus] = useState<fb.amrl_msgs.CACCStatus | null>(null)
 
   let classes = useStyles({ card_color: "red" });
@@ -56,19 +70,95 @@ export function SystemControlComponent (props: {
   );
 
   return (
+    <React.Fragment>
+      <Card variant="outlined" className={classes.card}>
+        <CardContent className={classes.cardContent}>
+          <span className={`${classes.status} ${classes.background}`} />
+        </CardContent>
+      </Card>
+    </React.Fragment>
+  );
+};
+
+function ThreeStatusIndicator(props: {
+  info_level: number,
+  topic: string,
+  }) {
+  const {info_level, topic } = props;
+  return (
+    <React.Fragment>
+      <Grid container spacing={2} direction="row" justify = "center">
+        <Grid item>
+          <StatusIndicator color="gray" topic={topic}/>
+        </Grid>
+        <Grid item>
+        <StatusIndicator color="gray" topic={topic}/>
+        </Grid>
+        <Grid item>
+          <StatusIndicator color="gray" topic={topic}/>
+        </Grid>
+      </Grid>
+    </React.Fragment>
+  );
+}
+
+function TwoStatusIndicator(props: {
+  info_level: number,
+  topic: string,
+  }) {
+  const {info_level, topic } = props;
+  return (
+    <React.Fragment>
+      <Grid container spacing={2} direction="row" justify = "center">
+        <Grid item>
+          <StatusIndicator color="gray" topic={topic}/>
+        </Grid>
+        <Grid item>
+          <StatusIndicator color="gray" topic={topic}/>
+        </Grid>
+      </Grid>
+    </React.Fragment>
+  );
+}
+
+export function SystemControlComponent (props: {
+  info_level: number;
+}) {
+  return (
       <React.Fragment>
-          {caccStatus && 
-              <Card variant="outlined" className={classes.card}>
-                  <CardContent className={classes.cardContent}>
-                  <span className={`${classes.status} ${classes.background}`} />
-                  </CardContent>
-              </Card>
-          }
-      </React.Fragment>
+          <Grid>                      
+            <Grid>
+
+              <Typography variant="h6">System Control</Typography>
+            
+            </Grid>
+
+            <Grid>
+              <Typography>Toggle DMS</Typography>
+              <ThreeStatusIndicator info_level={1} topic ={'cacc_status'}/>
+            </Grid>
+
+
+            <Grid>
+              <Typography>Toggle CAV Dyno</Typography>
+              <ThreeStatusIndicator info_level={1} topic={'cacc_status'}/>
+            </Grid>
+
+
+            <Grid>
+              <Typography>Object Sim Status</Typography>
+              <TwoStatusIndicator info_level={1} topic={'cacc_status'}/>
+            </Grid>
+
+
+            <Grid>
+              <Typography>UDP Sim Status</Typography>
+              <TwoStatusIndicator info_level={1} topic={'cacc_status'}/>
+            </Grid>
+
+          </Grid>                    
+          
+        </React.Fragment>
   );
 
-  //<CardContent>
-//   <Typography color="textPrimary" gutterBottom variant="h6">
-//   {msg.sensorid()}
-// </Typography>
 }

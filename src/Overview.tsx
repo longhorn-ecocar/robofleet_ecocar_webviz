@@ -38,10 +38,9 @@ import { SensorHealthComponent } from './components/SensorHealth';
 import { SystemHealthComponent } from './components/SystemHealth';
 import { SystemControlComponent } from './components/SystemControl';
 import { VehicleMonitorComponent } from './components/VehicleMonitor';
-import { UDPSimStatusComponent } from './components/UDPSimStatus';
 import { CACCStatusComponent } from './components/CACCStatusComponent'; // old test
 import { SystemLogComponent } from './components/SystemLog'; // old test
-import { Dashboard } from './components/Dashboard';
+import { Dashboard } from './Dashboard';
 import Toggle from './components/Toggle';
 
 dayjs.extend(relativeTime);
@@ -74,6 +73,9 @@ const useStyles = makeStyles((theme: Theme) => ({
   caccStatus: {
     // Additional styles if necessary
   },
+  // systemControl: {
+
+  // },
   dashboard: {
     // Additional styles if necessary
     flexGrow: 1,
@@ -122,69 +124,20 @@ export default function Overview() {
             <SensorHealthComponent info_level={1} />
           </Paper>
         </Grid>
-        {/* {showVehicleMonitor && 
-          <Grid item xs={6}>
-            <Box className={classes.middlePanel}>
-                <Typography variant="h6">Live Vehicle Monitor</Typography>
-                <VehicleMonitorComponent info_level={1} />
-            </Box>
-          </Grid>
-        } */}
 
-        {/* System Control Panel */}
+        {/* System Control Component */}
         <Grid item xs={3}>
-        <Paper className={classes.leftPanel}>
-          <Box className={classes.leftPanel}>
-              {/* <Box className={classes.systemHealth}>
-                <Typography variant="h6">System Health</Typography>
-                <SystemHealthComponent info_level={1} />
-              </Box> */}
-              <Box className={classes.caccStatus}>
-                <Typography variant="h6">System Control</Typography>
-              </Box>
-              <Box className={classes.caccStatus}>
-                <Typography variant="subtitle1">Toggle DMS</Typography>
-              </Box>
-              <Box className={classes.caccStatus}>
-                <Typography variant="subtitle1">Toggle CAV Dyno</Typography>
-              </Box>
-              <Box className={classes.caccStatus}>
-                <Typography variant="subtitle1">Request for DYNO status</Typography>
-              </Box>
-              <Box className={classes.caccStatus}>
-                <Typography variant="subtitle1">Object Simulation Status</Typography>
-              </Box>
-              <Box className={classes.systemLogs}>
-                <Typography variant="subtitle1">UDP Simulation Status</Typography>
-                <UDPSimStatusComponent info_level={1} />
-              </Box>
-            </Box>
-            </Paper>
+          <Paper className={classes.leftPanel}>
+            <SystemControlComponent info_level={1}/>
+          </Paper>
         </Grid>
 
         {/* 4 Panel dashboard (CACC, AIN, LCC, AP)*/}
         <Box className={classes.dashboard}>
           <Dashboard/>
         </Box>
-
-        {/* CACC status placeholder */}
-        {/* <Grid item xs={showVehicleMonitor ? 3 : 6}>
-          /* <Box className={classes.rightPanel}>
-            <Box className={classes.systemHealth}>
-              <Typography variant="h6">System Health</Typography>
-              <SystemHealthComponent info_level={1} />
-            </Box>
-            <Box className={classes.caccStatus}>
-              <Typography variant="h6">CACC Status</Typography>
-              <CACCStatusComponent info_level={1} />
-            </Box>
-            <Box className={classes.systemLogs}>
-              <Typography variant="h6">System Logs</Typography>
-                <SystemLogComponent info_level={1} /> 
-            </Box>
-          </Box> 
-        </Grid> */}
       </Grid>
     </Container>
   );
 };
+
