@@ -8,9 +8,13 @@ import {
 } from '@material-ui/core';
 import React, { useState, useCallback } from "react";
 import { fb } from '../schema';
-import {getStatusColor} from '../status'
+import { getStatusColor } from '../status';
 import useRobofleetMsgListener from '../hooks/useRobofleetMsgListener';
 import { matchTopicAnyNamespace } from '../util';
+
+interface StyleProps {
+  card_color: string;
+}
 
 const useStyles = makeStyles({
   card: {
@@ -18,20 +22,20 @@ const useStyles = makeStyles({
     height: '100%',
   },
   cardTitle: {
-    // height: '4rem', // Set a fixed height
+    // height: '4rem',
   },
   cardContent: {
     width: '100%',
     height: '100%',
     display: 'flex',
-    justifyContent: 'center', // Center-align items vertically
-    alignItems: 'center', // Center-align items horizontally
+    justifyContent: 'center', // center items vertically
+    alignItems: 'center', // center items horizontally
   },
   container: {
-    display: 'flex', // Display as an inline block
+    display: 'flex',
     flexDirection: 'row',
-    justifyCdontent: 'space-between', // Distribute space evenly
-    alignItems: 'center', // Center-align items horizontally
+    justifyContent: 'space-between',
+    alignItems: 'center',
     maxWidth: '100%',
     marginLeft: "auto"
   },
@@ -40,33 +44,56 @@ const useStyles = makeStyles({
     width: 30,
     borderRadius: '50%',
   },
-  background: (props: any) => (
-    {
-      backgroundColor: props.card_color
-    }
-  )
+  background: (props: StyleProps) => ({
+    backgroundColor: props.card_color
+  })
 });
 
-export function StatusIndicator(props: {
-  color: string,
-  topic: string,
-  }) {
-  const [caccStatus, setCaccStatus] = useState<fb.amrl_msgs.CACCStatus | null>(null)
+export function StatusIndicator(props: { topic: string, dictKey: string }) {
+  // We'll store the decoded dictionary here
+  const [systemDict, setSystemDict] = useState<{ [key: string]: number } | null>(null);
 
-  let classes = useStyles({ card_color: "red" });
-  classes = useStyles({ card_color: getStatusColor(caccStatus == null ? 0 : caccStatus.status()) });
+  // Compute the color for this block based on the value for props.dictKey
+  const value = systemDict && systemDict[props.dictKey] !== undefined ? systemDict[props.dictKey] : 0;
+  const classes = useStyles({ card_color: getStatusColor(value) });
 
+  // Listen for messages on the given topic and decode the dictionary
   useRobofleetMsgListener(
-      matchTopicAnyNamespace('cacc_status'),
-      useCallback(
-          (buf, match) => {
-              const status = fb.amrl_msgs.CACCStatus.getRootAsCACCStatus(
-                  buf
-              );
-              setCaccStatus(status)
-          },
-          [caccStatus]
-      )
+    matchTopicAnyNamespace(props.topic),
+    useCallback((buf, match) => {
+      // Get the ByteMultiArray message from the flatbuffer buffer.
+      const byteMsg = fb.std_msgs.ByteMultiArray.getRootAsByteMultiArray(buf);
+
+      // Build an array of numbers from the message.
+      let dataArr: number[] = [];
+      for (let i = 0; i < byteMsg.dataLength(); i++) {
+        const val = byteMsg.data(i);
+        if (val !== null) {
+          dataArr.push(val);
+        }
+      }
+
+      // Convert the array of char codes into a string.
+      const decodedString = String.fromCharCode(...dataArr);
+
+      // Decode the string into a dictionary.
+      // Expected format: "key1:val1;key2:val2;..."
+      let dict: { [key: string]: number } = {};
+      decodedString.split(';').forEach(pair => {
+        if (pair.trim() !== '') {
+          const parts = pair.split(':');
+          if (parts.length === 2) {
+            const key = parts[0].trim();
+            const val = parseInt(parts[1].trim(), 10);
+            if (!isNaN(val)) {
+              dict[key] = val;
+            }
+          }
+        }
+      });
+      console.log(dict);
+      setSystemDict(dict);
+    }, [])
   );
 
   return (
@@ -80,85 +107,69 @@ export function StatusIndicator(props: {
   );
 };
 
-function ThreeStatusIndicator(props: {
-  info_level: number,
-  topic: string,
-  }) {
-  const {info_level, topic } = props;
+function ThreeStatusIndicator(props: { info_level: number, topic: string }) {
+  // For example, we assume the dictionary has keys: "dyno_mode_req", "dyno_mode_state", and "ACC_state"
   return (
     <React.Fragment>
-      <Grid container spacing={2} direction="row" justify = "center">
+      <Grid container spacing={2} direction="row" justify="center">
         <Grid item>
-          <StatusIndicator color="gray" topic={topic}/>
+          <StatusIndicator topic={props.topic} dictKey="dyno_mode_req" />
         </Grid>
         <Grid item>
-        <StatusIndicator color="gray" topic={topic}/>
+          <StatusIndicator topic={props.topic} dictKey="dyno_mode_state" />
         </Grid>
         <Grid item>
-          <StatusIndicator color="gray" topic={topic}/>
+          <StatusIndicator topic={props.topic} dictKey="ACC_state" />
         </Grid>
       </Grid>
     </React.Fragment>
   );
 }
 
-function TwoStatusIndicator(props: {
-  info_level: number,
-  topic: string,
-  }) {
-  const {info_level, topic } = props;
+function TwoStatusIndicator(props: { info_level: number, topic: string }) {
+  // Here, choose two other keys that you expect in the dictionary.
   return (
     <React.Fragment>
-      <Grid container spacing={2} direction="row" justify = "center">
+      <Grid container spacing={2} direction="row" justify="center">
         <Grid item>
-          <StatusIndicator color="gray" topic={topic}/>
+          <StatusIndicator topic={props.topic} dictKey="object_sim_status" />
         </Grid>
         <Grid item>
-          <StatusIndicator color="gray" topic={topic}/>
+          <StatusIndicator topic={props.topic} dictKey="udp_sim_status" />
         </Grid>
       </Grid>
     </React.Fragment>
   );
 }
 
-export function SystemControlComponent (props: {
-  info_level: number;
-}) {
+export function SystemControlComponent(props: { info_level: number; }) {
   return (
-      <React.Fragment>
-          <Grid>                      
-            <Grid>
+    <React.Fragment>
+      <Grid>
+        <Grid>
+          <Typography variant="h6">System Control</Typography>
+        </Grid>
 
-              <Typography variant="h6">System Control</Typography>
-            
-            </Grid>
+        <Grid>
+          <Typography>Toggle DMS</Typography>
+          <ThreeStatusIndicator info_level={1} topic={'autera_can_tx'} />
+        </Grid>
 
-            <Grid>
-              <Typography>Toggle DMS</Typography>
-              <ThreeStatusIndicator info_level={1} topic ={'cacc_status'}/>
-            </Grid>
+        <Grid>
+          <Typography>Toggle CAV Dyno</Typography>
+          <ThreeStatusIndicator info_level={1} topic={'autera_can_tx'} />
+        </Grid>
 
+        <Grid>
+          <Typography>Object Sim Status</Typography>
+          <TwoStatusIndicator info_level={1} topic={'autera_can_tx'} />
+        </Grid>
 
-            <Grid>
-              <Typography>Toggle CAV Dyno</Typography>
-              <ThreeStatusIndicator info_level={1} topic={'cacc_status'}/>
-            </Grid>
-
-
-            <Grid>
-              <Typography>Object Sim Status</Typography>
-              <TwoStatusIndicator info_level={1} topic={'cacc_status'}/>
-            </Grid>
-
-
-            <Grid>
-              <Typography>UDP Sim Status</Typography>
-              <TwoStatusIndicator info_level={1} topic={'cacc_status'}/>
-            </Grid>
-
-          </Grid>                    
-          
-        </React.Fragment>
+        <Grid>
+          <Typography>UDP Sim Status</Typography>
+          <TwoStatusIndicator info_level={1} topic={'autera_can_tx'} />
+        </Grid>
+      </Grid>
+    </React.Fragment>
   );
-
 }
