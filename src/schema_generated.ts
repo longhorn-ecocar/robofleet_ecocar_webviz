@@ -3,6 +3,49 @@
 /**
  * @enum {number}
  */
+export namespace fb{
+export enum Payload{
+  NONE= 0,
+  fb_std_msgs_ByteMultiArray= 1
+};
+
+export function unionToPayload(
+  type: Payload,
+  accessor: (obj:fb.std_msgs.ByteMultiArray) => fb.std_msgs.ByteMultiArray|null
+): fb.std_msgs.ByteMultiArray|null {
+  switch(fb.Payload[type]) {
+    case 'NONE': return null; 
+    case 'fb_std_msgs_ByteMultiArray': return accessor(new fb.std_msgs.ByteMultiArray())! as fb.std_msgs.ByteMultiArray;
+    default: return null;
+  }
+}
+
+export function unionListToPayload(
+  type: Payload, 
+  accessor: (index: number, obj:fb.std_msgs.ByteMultiArray) => fb.std_msgs.ByteMultiArray|null, 
+  index: number
+): fb.std_msgs.ByteMultiArray|null {
+  switch(fb.Payload[type]) {
+    case 'NONE': return null; 
+    case 'fb_std_msgs_ByteMultiArray': return accessor(index, new fb.std_msgs.ByteMultiArray())! as fb.std_msgs.ByteMultiArray;
+    default: return null;
+  }
+}
+}
+
+/**
+ * @enum {number}
+ */
+export namespace fb{
+export enum PayloadType{
+  NONE= 0,
+  ByteMultiArray= 1
+};
+}
+
+/**
+ * @enum {number}
+ */
 export namespace fb.amrl_msgs.RobofleetSubscriptionConstants{
 export enum action_unsubscribe{
   value= 0
@@ -463,10 +506,27 @@ _metadata(obj?:fb.MsgMetadata):fb.MsgMetadata|null {
 };
 
 /**
+ * @returns fb.Payload
+ */
+payloadType():fb.Payload {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? /**  */ (this.bb!.readUint8(this.bb_pos + offset)) : fb.Payload.NONE;
+};
+
+/**
+ * @param flatbuffers.Table obj
+ * @returns ?flatbuffers.Table
+ */
+payload<T extends flatbuffers.Table>(obj:T):T|null {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.__union(obj, this.bb_pos + offset) : null;
+};
+
+/**
  * @param flatbuffers.Builder builder
  */
 static startMsgWithMetadata(builder:flatbuffers.Builder) {
-  builder.startObject(1);
+  builder.startObject(3);
 };
 
 /**
@@ -479,6 +539,22 @@ static add_Metadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Off
 
 /**
  * @param flatbuffers.Builder builder
+ * @param fb.Payload payloadType
+ */
+static addPayloadType(builder:flatbuffers.Builder, payloadType:fb.Payload) {
+  builder.addFieldInt8(1, payloadType, fb.Payload.NONE);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset payloadOffset
+ */
+static addPayload(builder:flatbuffers.Builder, payloadOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, payloadOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
  * @returns flatbuffers.Offset
  */
 static endMsgWithMetadata(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -486,9 +562,11 @@ static endMsgWithMetadata(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 };
 
-static createMsgWithMetadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createMsgWithMetadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset, payloadType:fb.Payload, payloadOffset:flatbuffers.Offset):flatbuffers.Offset {
   MsgWithMetadata.startMsgWithMetadata(builder);
   MsgWithMetadata.add_Metadata(builder, _metadataOffset);
+  MsgWithMetadata.addPayloadType(builder, payloadType);
+  MsgWithMetadata.addPayload(builder, payloadOffset);
   return MsgWithMetadata.endMsgWithMetadata(builder);
 }
 }
@@ -4858,6 +4936,429 @@ static createString(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Off
   String.addData(builder, dataOffset);
   return String.endString(builder);
 }
+}
+}
+/**
+ * @constructor
+ */
+export namespace fb.std_msgs{
+export class MultiArrayDimension {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns MultiArrayDimension
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):MultiArrayDimension {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param MultiArrayDimension= obj
+ * @returns MultiArrayDimension
+ */
+static getRootAsMultiArrayDimension(bb:flatbuffers.ByteBuffer, obj?:MultiArrayDimension):MultiArrayDimension {
+  return (obj || new MultiArrayDimension()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param MultiArrayDimension= obj
+ * @returns MultiArrayDimension
+ */
+static getSizePrefixedRootAsMultiArrayDimension(bb:flatbuffers.ByteBuffer, obj?:MultiArrayDimension):MultiArrayDimension {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MultiArrayDimension()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param fb.MsgMetadata= obj
+ * @returns fb.MsgMetadata|null
+ */
+_metadata(obj?:fb.MsgMetadata):fb.MsgMetadata|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new fb.MsgMetadata()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param flatbuffers.Encoding= optionalEncoding
+ * @returns string|Uint8Array|null
+ */
+label():string|null
+label(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+label(optionalEncoding?:any):string|Uint8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+};
+
+/**
+ * @returns number
+ */
+size():number {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns number
+ */
+stride():number {
+  var offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startMultiArrayDimension(builder:flatbuffers.Builder) {
+  builder.startObject(4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset _metadataOffset
+ */
+static add_Metadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, _metadataOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset labelOffset
+ */
+static addLabel(builder:flatbuffers.Builder, labelOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, labelOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number size
+ */
+static addSize(builder:flatbuffers.Builder, size:number) {
+  builder.addFieldInt32(2, size, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number stride
+ */
+static addStride(builder:flatbuffers.Builder, stride:number) {
+  builder.addFieldInt32(3, stride, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endMultiArrayDimension(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  builder.requiredField(offset, 6); // label
+  return offset;
+};
+
+static createMultiArrayDimension(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset, labelOffset:flatbuffers.Offset, size:number, stride:number):flatbuffers.Offset {
+  MultiArrayDimension.startMultiArrayDimension(builder);
+  MultiArrayDimension.add_Metadata(builder, _metadataOffset);
+  MultiArrayDimension.addLabel(builder, labelOffset);
+  MultiArrayDimension.addSize(builder, size);
+  MultiArrayDimension.addStride(builder, stride);
+  return MultiArrayDimension.endMultiArrayDimension(builder);
+}
+}
+}
+/**
+ * @constructor
+ */
+export namespace fb.std_msgs{
+export class MultiArrayLayout {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns MultiArrayLayout
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):MultiArrayLayout {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param MultiArrayLayout= obj
+ * @returns MultiArrayLayout
+ */
+static getRootAsMultiArrayLayout(bb:flatbuffers.ByteBuffer, obj?:MultiArrayLayout):MultiArrayLayout {
+  return (obj || new MultiArrayLayout()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param MultiArrayLayout= obj
+ * @returns MultiArrayLayout
+ */
+static getSizePrefixedRootAsMultiArrayLayout(bb:flatbuffers.ByteBuffer, obj?:MultiArrayLayout):MultiArrayLayout {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new MultiArrayLayout()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param fb.MsgMetadata= obj
+ * @returns fb.MsgMetadata|null
+ */
+_metadata(obj?:fb.MsgMetadata):fb.MsgMetadata|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new fb.MsgMetadata()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param number index
+ * @param fb.std_msgs.MultiArrayDimension= obj
+ * @returns fb.std_msgs.MultiArrayDimension
+ */
+dim(index: number, obj?:fb.std_msgs.MultiArrayDimension):fb.std_msgs.MultiArrayDimension|null {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? (obj || new fb.std_msgs.MultiArrayDimension()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+};
+
+/**
+ * @returns number
+ */
+dimLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns number
+ */
+dataOffset():number {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readUint32(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startMultiArrayLayout(builder:flatbuffers.Builder) {
+  builder.startObject(3);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset _metadataOffset
+ */
+static add_Metadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, _metadataOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset dimOffset
+ */
+static addDim(builder:flatbuffers.Builder, dimOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, dimOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<flatbuffers.Offset> data
+ * @returns flatbuffers.Offset
+ */
+static createDimVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startDimVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number dataOffset
+ */
+static addDataOffset(builder:flatbuffers.Builder, dataOffset:number) {
+  builder.addFieldInt32(2, dataOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endMultiArrayLayout(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  builder.requiredField(offset, 6); // dim
+  return offset;
+};
+
+static createMultiArrayLayout(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset, dimOffset:flatbuffers.Offset, dataOffset:number):flatbuffers.Offset {
+  MultiArrayLayout.startMultiArrayLayout(builder);
+  MultiArrayLayout.add_Metadata(builder, _metadataOffset);
+  MultiArrayLayout.addDim(builder, dimOffset);
+  MultiArrayLayout.addDataOffset(builder, dataOffset);
+  return MultiArrayLayout.endMultiArrayLayout(builder);
+}
+}
+}
+/**
+ * @constructor
+ */
+export namespace fb.std_msgs{
+export class ByteMultiArray {
+  bb: flatbuffers.ByteBuffer|null = null;
+
+  bb_pos:number = 0;
+/**
+ * @param number i
+ * @param flatbuffers.ByteBuffer bb
+ * @returns ByteMultiArray
+ */
+__init(i:number, bb:flatbuffers.ByteBuffer):ByteMultiArray {
+  this.bb_pos = i;
+  this.bb = bb;
+  return this;
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param ByteMultiArray= obj
+ * @returns ByteMultiArray
+ */
+static getRootAsByteMultiArray(bb:flatbuffers.ByteBuffer, obj?:ByteMultiArray):ByteMultiArray {
+  return (obj || new ByteMultiArray()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param flatbuffers.ByteBuffer bb
+ * @param ByteMultiArray= obj
+ * @returns ByteMultiArray
+ */
+static getSizePrefixedRootAsByteMultiArray(bb:flatbuffers.ByteBuffer, obj?:ByteMultiArray):ByteMultiArray {
+  bb.setPosition(bb.position() + flatbuffers.SIZE_PREFIX_LENGTH);
+  return (obj || new ByteMultiArray()).__init(bb.readInt32(bb.position()) + bb.position(), bb);
+};
+
+/**
+ * @param fb.MsgMetadata= obj
+ * @returns fb.MsgMetadata|null
+ */
+_metadata(obj?:fb.MsgMetadata):fb.MsgMetadata|null {
+  var offset = this.bb!.__offset(this.bb_pos, 4);
+  return offset ? (obj || new fb.MsgMetadata()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param fb.std_msgs.MultiArrayLayout= obj
+ * @returns fb.std_msgs.MultiArrayLayout|null
+ */
+layout(obj?:fb.std_msgs.MultiArrayLayout):fb.std_msgs.MultiArrayLayout|null {
+  var offset = this.bb!.__offset(this.bb_pos, 6);
+  return offset ? (obj || new fb.std_msgs.MultiArrayLayout()).__init(this.bb!.__indirect(this.bb_pos + offset), this.bb!) : null;
+};
+
+/**
+ * @param number index
+ * @returns number
+ */
+data(index: number):number|null {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.readInt8(this.bb!.__vector(this.bb_pos + offset) + index) : 0;
+};
+
+/**
+ * @returns number
+ */
+dataLength():number {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+};
+
+/**
+ * @returns Int8Array
+ */
+dataArray():Int8Array|null {
+  var offset = this.bb!.__offset(this.bb_pos, 8);
+  return offset ? new Int8Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ */
+static startByteMultiArray(builder:flatbuffers.Builder) {
+  builder.startObject(3);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset _metadataOffset
+ */
+static add_Metadata(builder:flatbuffers.Builder, _metadataOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(0, _metadataOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset layoutOffset
+ */
+static addLayout(builder:flatbuffers.Builder, layoutOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(1, layoutOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param flatbuffers.Offset dataOffset
+ */
+static addData(builder:flatbuffers.Builder, dataOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, dataOffset, 0);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param Array.<number> data
+ * @returns flatbuffers.Offset
+ */
+static createDataVector(builder:flatbuffers.Builder, data:number[] | Uint8Array):flatbuffers.Offset {
+  builder.startVector(1, data.length, 1);
+  for (var i = data.length - 1; i >= 0; i--) {
+    builder.addInt8(data[i]);
+  }
+  return builder.endVector();
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @param number numElems
+ */
+static startDataVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(1, numElems, 1);
+};
+
+/**
+ * @param flatbuffers.Builder builder
+ * @returns flatbuffers.Offset
+ */
+static endByteMultiArray(builder:flatbuffers.Builder):flatbuffers.Offset {
+  var offset = builder.endObject();
+  builder.requiredField(offset, 6); // layout
+  builder.requiredField(offset, 8); // data
+  return offset;
+};
+
 }
 }
 /**

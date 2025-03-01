@@ -31,6 +31,7 @@ export default function useRobofleetMsgListener(
     // get metadata for arbitrary message type that extends MsgWithMetadata
     const metadataMsg = fb.MsgWithMetadata.getRootAsMsgWithMetadata(buf);
     const topic = metadataMsg._metadata()?.topic();
+
     if (!topic) return;
 
     const match = topic.match(regex);

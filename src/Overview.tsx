@@ -25,6 +25,7 @@ import React, {
   useMemo,
   ReactElement,
 } from 'react';
+import { useParams, useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import PercentageDisplay from './components/PercentageDisplay';
@@ -90,6 +91,10 @@ const useStyles = makeStyles((theme: Theme) => ({
 }));
 
 export default function Overview() {
+  // const params = useParams<{ id: string; tab: string | undefined }>();
+  // const namespace = atob(params.id);
+  const namespace = "leva";
+
   const { setPaused } = useContext(AppContext);
 
   const [showVehicleMonitor, setShowVehicleMonitor] = useState<boolean>(true);
@@ -109,12 +114,12 @@ export default function Overview() {
   return (
     <Container maxWidth={false} disableGutters>
       <Box p={2} display="flex" alignItems="center">
-        <Typography variant="h5">LEVA Moalsknflknaflknaskfnitor</Typography>
-        <Toggle label="Show Image Viewer" setToggle={setToggle}/>
+        <Typography variant="h5">LEVA Monitor</Typography>
+        <Toggle label="Show Image Viewer" setToggle={setToggle} />
         {/* <Grid container spacing={1} style={{ marginLeft: 'auto', width: '50' }}> */}
-          <SystemHealthComponent info_level={1} />
+        <SystemHealthComponent info_level={1} />
       </Box>
-        {/* </Grid> */}
+      {/* </Grid> */}
 
       {/* Sensor Health */}
       <Grid container spacing={2}>
@@ -128,13 +133,13 @@ export default function Overview() {
         {/* System Control Component */}
         <Grid item xs={3}>
           <Paper className={classes.leftPanel}>
-            <SystemControlComponent info_level={1}/>
+            <SystemControlComponent info_level={1} topic="autera_can_tx" namespace={namespace} />
           </Paper>
         </Grid>
 
         {/* 4 Panel dashboard (CACC, AIN, LCC, AP)*/}
         <Box className={classes.dashboard}>
-          <Dashboard/>
+          <Dashboard />
         </Box>
       </Grid>
     </Container>
