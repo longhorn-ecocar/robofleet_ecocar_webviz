@@ -4,7 +4,8 @@ import {
   Typography,
   Grid,
   makeStyles,
-  Box
+  Box,
+  Button,
 } from '@material-ui/core';
 import React, { useState, useCallback, useContext } from "react";
 import { fb } from '../schema';
@@ -12,7 +13,6 @@ import { flatbuffers } from 'flatbuffers';
 import WebSocketContext from '../contexts/WebSocketContext';
 import useRobofleetMsgListener from '../hooks/useRobofleetMsgListener';
 import { matchTopicAnyNamespace } from '../util';
-import { Button } from "@material-ui/core";
 
 interface StyleProps {
   card_color: string;
@@ -51,51 +51,33 @@ const useStyles = makeStyles({
   })
 });
 
-function createByteMultiArrayMsg({
+/**
+ * New helper function to create a std_msgs/String FlatBuffer message.
+ * The input parameter 'data' is now a string.
+ */
+function createStringMsg({
   namespace,
   topic,
   data,
 }: {
   namespace: string;
   topic: string;
-  data: number[];
+  data: string;
 }): Uint8Array {
   const fbb = new flatbuffers.Builder();
-
-  // Create metadata offset.
   const metadataOffset = fb.MsgMetadata.createMsgMetadata(
     fbb,
-    fbb.createString('std_msgs/ByteMultiArray'),
+    fbb.createString('std_msgs/String'),
     fbb.createString(`${namespace}/${topic}`)
   );
-
-  // Create the empty dimensions vector BEFORE starting the MultiArrayLayout.
-  const emptyDimVector = fb.std_msgs.MultiArrayLayout.createDimVector(fbb, []);
-
-  // Now start and finish the MultiArrayLayout.
-  fb.std_msgs.MultiArrayLayout.startMultiArrayLayout(fbb);
-  fb.std_msgs.MultiArrayLayout.addDim(fbb, emptyDimVector);
-  fb.std_msgs.MultiArrayLayout.addDataOffset(fbb, 0);
-  const layoutOffset = fb.std_msgs.MultiArrayLayout.endMultiArrayLayout(fbb);
-
-  // Create the data vector for ByteMultiArray.
-  const dataOffset = fb.std_msgs.ByteMultiArray.createDataVector(fbb, data);
-
-  // Build the ByteMultiArray message.
-  fb.std_msgs.ByteMultiArray.startByteMultiArray(fbb);
-  fb.std_msgs.ByteMultiArray.add_Metadata(fbb, metadataOffset);
-  fb.std_msgs.ByteMultiArray.addLayout(fbb, layoutOffset);
-  fb.std_msgs.ByteMultiArray.addData(fbb, dataOffset);
-  const byteMultiArrayOffset = fb.std_msgs.ByteMultiArray.endByteMultiArray(fbb);
-
-  fbb.finish(byteMultiArrayOffset);
+  const dataOffset = fbb.createString(data);
+  const stringMessageOffset = fb.std_msgs.String.createString(fbb, metadataOffset, dataOffset);
+  fbb.finish(stringMessageOffset);
   return fbb.asUint8Array();
 }
 
-
+// (Keep your existing StatusIndicator, ThreeStatusIndicator, TwoStatusIndicator, ByteCounter components as before.)
 export function StatusIndicator(props: { color: string, dataVal: number, matchVal: number }) {
-  // should display hardcoded color if dataVal == matchVal
-  // otherwise display gray
   let isMatching = props.dataVal === props.matchVal;
   const classes = useStyles({ card_color: isMatching ? props.color : "gray" });
 
@@ -108,10 +90,9 @@ export function StatusIndicator(props: { color: string, dataVal: number, matchVa
       </Card>
     </React.Fragment>
   );
-};
+}
 
 function ThreeStatusIndicator(props: { dataVal: number }) {
-
   return (
     <React.Fragment>
       <Grid container spacing={2} direction="row" justify="center">
@@ -130,7 +111,6 @@ function ThreeStatusIndicator(props: { dataVal: number }) {
 }
 
 function TwoStatusIndicator(props: { dataVal: number }) {
-  // Here, choose two other keys that you expect in the dictionary.
   return (
     <React.Fragment>
       <Grid container spacing={2} direction="row" justify="center">
@@ -152,10 +132,9 @@ export function ByteCounter(props: { value: number }) {
 }
 
 export function SystemControlComponent(props: { info_level: number; topic: string; namespace: string }) {
-  // TODO: Move dictionary decoding here
   const ws = useContext(WebSocketContext);
 
-  // Received dictionary from incoming messages (for display)
+  // Default system dictionary for displaying received values.
   const defaultSystemDict = {
     dyno_mode_req: 0,
     byte_count: 0,
@@ -165,68 +144,54 @@ export function SystemControlComponent(props: { info_level: number; topic: strin
   const [systemDict, setSystemDict] = useState<{ [key: string]: number } | null>(null);
   const displayDict = systemDict || defaultSystemDict;
 
-  // Command dictionary for transmitting commands
+  // Command dictionary for transmitting commands.
   const defaultCommandDict = {
     toggle_dms: 0,
     toggle_dyno: 0,
   };
   const [commandDict, setCommandDict] = useState<{ [key: string]: number }>(defaultCommandDict);
 
-  // Listen for messages on the given topic and decode the dictionary
+  // Listener for incoming messages (still expecting ByteMultiArray for display)
   useRobofleetMsgListener(
     matchTopicAnyNamespace(props.topic),
     useCallback((buf, match) => {
-      // Get the ByteMultiArray message from the flatbuffer buffer.
-      const byteMsg = fb.std_msgs.ByteMultiArray.getRootAsByteMultiArray(buf);
-
-      // Build an array of numbers from the message.
-      let dataArr: number[] = [];
-      for (let i = 0; i < byteMsg.dataLength(); i++) {
-        const val = byteMsg.data(i);
-        if (val !== null) {
-          dataArr.push(val);
-        }
-      }
-
-      // Convert the array of char codes into a string.
-      const decodedString = String.fromCharCode(...dataArr);
-
-      // Decode the string into a dictionary.
-      // Expected format: "key1:val1;key2:val2;..."
+      // Get the std_msgs/String message from the FlatBuffer buffer.
+      const stringMsg = fb.std_msgs.String.getRootAsString(buf);
+      const decodedString = stringMsg.data();
       let dict: { [key: string]: number } = {};
-      decodedString.split(';').forEach(pair => {
-        if (pair.trim() !== '') {
-          const parts = pair.split(':');
-          if (parts.length === 2) {
-            const key = parts[0].trim();
-            const val = parseInt(parts[1].trim(), 10);
-            if (!isNaN(val)) {
-              dict[key] = val;
+      if (decodedString) {
+        decodedString.split(';').forEach(pair => {
+          if (pair.trim() !== '') {
+            const parts = pair.split(':');
+            if (parts.length === 2) {
+              const key = parts[0].trim();
+              const val = parseInt(parts[1].trim(), 10);
+              if (!isNaN(val)) {
+                dict[key] = val;
+              }
             }
           }
-        }
-      });
+        });
+      }
       console.log(dict);
       setSystemDict(dict);
     }, [])
   );
 
-  // When a toggle button is pressed, update commandDict and transmit it.
+  // When a toggle button is pressed, update commandDict and transmit it using std_msgs/String.
   const handleCommandToggle = (key: "toggle_dms" | "toggle_dyno") => {
     const newCommandDict = { ...commandDict };
     newCommandDict[key] = newCommandDict[key] === 0 ? 1 : 0;
     setCommandDict(newCommandDict);
 
-    // Encode the command dictionary as "key1:val1;key2:val2"
+    // Encode the command dictionary as a string "key1:val1;key2:val2"
     const msgString = Object.entries(newCommandDict)
       .map(([k, v]) => `${k}:${v}`)
       .join(";");
-    const data = msgString.split('').map(c => c.charCodeAt(0));
-    const msg = createByteMultiArrayMsg({
+    const msg = createStringMsg({
       namespace: props.namespace,
-      topic: `/leva/initialpose`, // TODO: Figure out how this works? Wrong topic name but correctr output
-      // topic: `/leva/autera_rx`,
-      data,
+      topic: `/leva/initialpose`, // adjust topic as needed
+      data: msgString,
     });
 
     if (ws?.connected) {
@@ -262,22 +227,22 @@ export function SystemControlComponent(props: { info_level: number; topic: strin
           <Button variant="contained" color="primary" onClick={() => handleCommandToggle("toggle_dyno")}>
             Toggle Dyno
           </Button>
-          <ThreeStatusIndicator dataVal={displayDict["dyno_mode_state"]} />
+          <TwoStatusIndicator dataVal={displayDict["dyno_mode_state"]} />
         </Grid>
 
         <Grid>
-          <Typography>UDP Simulation Status</Typography>
-          <TwoStatusIndicator dataVal={displayDict["ACC_state"]} />
+          <Typography>ACC State</Typography>
+          <ThreeStatusIndicator dataVal={displayDict["ACC_state"]} />
         </Grid>
 
         <Grid>
           <Typography>Request for Dyno Mode</Typography>
-          <TwoStatusIndicator dataVal={displayDict["ACC_state"]} />
+          <TwoStatusIndicator dataVal={displayDict["dyno_mode_req"]} />
         </Grid>
 
         <Grid>
           <Typography>Simulation Active Status</Typography>
-          <TwoStatusIndicator dataVal={displayDict["ACC_state"]} />
+          <TwoStatusIndicator dataVal={displayDict["dyno_mode_req"]} />
         </Grid>
       </Grid>
     </React.Fragment>
