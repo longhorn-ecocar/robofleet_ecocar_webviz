@@ -1,148 +1,221 @@
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
   Box,
-  Button,
   Container,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
+  Grid,
   Typography,
   makeStyles,
-  Grid,
   Theme,
 } from '@material-ui/core';
-import { Check, Clear, Delete } from '@material-ui/icons';
-import CloudOff from '@material-ui/icons/CloudOff';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  useMemo,
-  ReactElement,
-} from 'react';
-import { useParams, useHistory } from 'react-router';
-import { Link } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import PercentageDisplay from './components/PercentageDisplay';
 import AppContext from './contexts/AppContext';
-import { fb } from './schema';
-import config from './config';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
 import IdTokenContext from './contexts/IdTokenContext';
 import { SensorHealthComponent } from './components/SensorHealth';
 import { SystemHealthComponent } from './components/SystemHealth';
-import { SystemControlComponent } from './components/SystemControl';
-import { VehicleMonitorComponent } from './components/VehicleMonitor';
-import { CACCStatusComponent } from './components/CACCStatusComponent'; // old test
-import { SystemLogComponent } from './components/SystemLog'; // old test
-import { Dashboard } from './Dashboard';
-import Toggle from './components/Toggle';
-
-dayjs.extend(relativeTime);
+import { SystemControlComponent, ButtonConfig } from './components/SystemControl';
+import { SignalConfig } from './components/SignalListComponent';
 
 const useStyles = makeStyles((theme: Theme) => ({
-  disabled: {},
   leftPanel: {
     background: theme.palette.background.paper,
     padding: theme.spacing(2),
-    height: 'calc(100vh - 136px)', // Assuming NavBar is 64px
-    overflowY: 'auto', // Make only the left panel scrollable
-  },
-  middlePanel: {
-    position: 'relative', // For absolute positioning of the image or overlay
-    padding: theme.spacing(2),
     height: 'calc(100vh - 136px)',
-    overflowY: 'auto', // Make only the middle panel scrollable
-  },
-  rightPanel: {
-    background: theme.palette.background.paper,
-    padding: theme.spacing(2),
-    height: 'calc(100vh - 136px)',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between', // Distribute space evenly between the items
-  },
-  systemHealth: {
-    marginBottom: theme.spacing(2), // Space between System Health and CACC Status
-  },
-  caccStatus: {
-    // Additional styles if necessary
-  },
-  // systemControl: {
-
-  // },
-  dashboard: {
-    // Additional styles if necessary
-    flexGrow: 1,
-    padding: theme.spacing(1),
-    height: 'calc(100vh - 136px)', // Assuming NavBar is 64px
-    overflowY: 'auto', // Make only the left panel scrollable
-  },
-  systemLogs: {
-    flexGrow: 1, // Allow System Logs to take up remaining space
-    overflowY: 'auto', // Make only the system logs scrollable
+    overflowY: 'auto',
   },
 }));
 
 export default function Overview() {
-  // const params = useParams<{ id: string; tab: string | undefined }>();
-  // const namespace = atob(params.id);
-  const namespace = "leva";
-
-  const { setPaused } = useContext(AppContext);
-
-  const [showVehicleMonitor, setShowVehicleMonitor] = useState<boolean>(true);
-
-  const { idToken } = useContext(IdTokenContext);
   const classes = useStyles();
+  const { setPaused } = useContext(AppContext);
+  const { idToken } = useContext(IdTokenContext);
+  const [showVehicleMonitor, setShowVehicleMonitor] = useState<boolean>(true);
 
   useEffect(() => {
     setPaused(false);
   }, [setPaused]);
 
+  // Namespace for topics
+  const namespace = 'leva';
 
-  const setToggle = (shouldShowImageViewer: boolean) => {
-    setShowVehicleMonitor(shouldShowImageViewer);
-  };
+  // 1) Define signal configurations
+  const cavSignalConfigs: SignalConfig[] = [
+    {
+      name: 'Dyno Mode Request',
+      key: 'dyno_mode_req',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'green' }
+    },
+    {
+      name: 'Dyno Mode State',
+      key: 'dyno_mode_state',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'green' }
+    },
+    {
+      name: 'ACC State',
+      key: 'ACC_state',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'yellow', '2': 'green' }
+    },
+    {
+      name: 'Vehicle Ahead',
+      key: 'vehicle_ahead',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'green' }
+    },
+    {
+      name: 'Vehicle Headway',
+      key: 'vehicle_headway',
+      type: 'freeform',
+      state: 0
+    },
+    {
+      name: 'Traffic Light State',
+      key: 'traffic_light_state',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'green', '2': 'yellow' }
+    },
+    {
+      name: 'CACC Mileage',
+      key: 'CACC_mileage',
+      type: 'freeform',
+      state: 0
+    },
+    {
+      name: 'AIN State',
+      key: 'AIN_state',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'yellow', '2': 'green' }
+    },
+    {
+      name: 'LCC State',
+      key: 'LCC_state',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'yellow', '2': 'green' }
+    },
+    {
+      name: 'AP State',
+      key: 'AP_state',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'yellow', '2': 'green' }
+    },
+    {
+      name: 'DMS State',
+      key: 'DMS_state',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'yellow', '2': 'green' }
+    },
+    {
+      name: 'UDP Byte Count',
+      key: 'udp_byte_count',
+      type: 'freeform',
+      state: 0
+    },
+    {
+      name: 'Simulation Active',
+      key: 'simulation_active',
+      type: 'indicator',
+      state: 0,
+      colors: { '0': 'red', '1': 'green' }
+    },
+  ];
+
+  // 2) Define button configurations
+  const cavButtonConfigs: ButtonConfig[] = [
+    { name: 'Toggle Dyno', key: 'toggle_dyno', type: 'stateless' },
+    { name: 'Enable AIN', key: 'AIN_button', type: 'stateful' },
+    { name: 'Enable AP', key: 'AP_button', type: 'stateful' },
+    { name: 'Enable DMS', key: 'DMS_button', type: 'stateful' },
+  ];
+
+  const pcmSignalConfigs: SignalConfig[] = [
+    {
+      name: "Power Flow",
+      key: "pwr_flow",
+      type: "freeform",
+      state: 0
+    },
+    {
+      name: "HV Battery SOC",
+      key: 'hv_bat_soc',
+      type: "freeform",
+      state: 0
+    },
+    {
+      name: "HV Battery Temp",
+      key: 'hv_bat_temp',
+      type: "freeform",
+      state: 0
+    },
+    {
+      name: "EDU Temp",
+      key: 'edu_temp',
+      type: "freeform",
+      state: 0
+    },
+    {
+      name: "Drive Mode",
+      key: 'drv_mod',
+      type: "freeform",
+      state: 0
+    },
+  ]
+
+  const pcmButtonConfigs: ButtonConfig[] = [
+  ]
 
   return (
     <Container maxWidth={false} disableGutters>
       <Box p={2} display="flex" alignItems="center">
         <Typography variant="h5">LEVA Monitor</Typography>
-        <Toggle label="Show Image Viewer" setToggle={setToggle} />
-        {/* <Grid container spacing={1} style={{ marginLeft: 'auto', width: '50' }}> */}
         <SystemHealthComponent info_level={1} />
       </Box>
-      {/* </Grid> */}
 
-      {/* Sensor Health */}
       <Grid container spacing={2}>
-        <Grid item xs={showVehicleMonitor ? 3 : 6}>
+        <Grid item xs={3}>
           <Paper className={classes.leftPanel}>
             <Typography variant="h6">Sensor Health</Typography>
             <SensorHealthComponent info_level={1} />
           </Paper>
         </Grid>
 
-        {/* System Control Component */}
         <Grid item xs={3}>
           <Paper className={classes.leftPanel}>
-            <SystemControlComponent info_level={1} topic="autera_can_tx" namespace={namespace} />
+            <SystemControlComponent
+              title="CAV Control Panel"
+              signals={cavSignalConfigs}
+              buttons={cavButtonConfigs}
+              rxTopic="autera_can_tx"
+              txTopic="/leva/initialpose"
+              namespace={namespace}
+            />
           </Paper>
         </Grid>
 
-        {/* 4 Panel dashboard (CACC, AIN, LCC, AP)*/}
-        <Box className={classes.dashboard}>
-          <Dashboard />
-        </Box>
+        <Grid item xs={3}>
+          <Paper className={classes.leftPanel}>
+            <SystemControlComponent
+              title="PCM Control Panel"
+              signals={pcmSignalConfigs}
+              buttons={pcmButtonConfigs}
+              rxTopic="autera_evccan_tx"
+              txTopic="initialpose"
+              namespace={namespace}
+            />
+          </Paper>
+        </Grid>
       </Grid>
     </Container>
   );
-};
-
+}

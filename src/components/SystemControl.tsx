@@ -1,279 +1,140 @@
-import {
-  Card,
-  CardContent,
-  Typography,
-  Grid,
-  makeStyles,
-  Box,
-  Button,
-} from '@material-ui/core';
+// src/components/SystemControl.tsx
 import React, { useState, useCallback, useContext } from 'react';
+import { Box, Button, Grid, Typography } from '@material-ui/core';
 import { fb } from '../schema';
 import { flatbuffers } from 'flatbuffers';
 import WebSocketContext from '../contexts/WebSocketContext';
 import useRobofleetMsgListener from '../hooks/useRobofleetMsgListener';
 import { matchTopicAnyNamespace } from '../util';
+import { SignalList, SignalConfig } from './SignalListComponent';
 
-interface StyleProps {
-  card_color: string;
+export type ButtonType = 'stateless' | 'stateful';
+export interface ButtonConfig {
+  name: string;     // label shown to the user
+  key: string;      // used in commandDict lookup/send
+  type: ButtonType;
 }
 
-const useStyles = makeStyles({
-  card: {
-    flexGrow: 1,
-    height: '100%',
-  },
-  cardTitle: {
-    // height: '4rem',
-  },
-  cardContent: {
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    justifyContent: 'center', // center items vertically
-    alignItems: 'center', // center items horizontally
-  },
-  container: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    maxWidth: '100%',
-    marginLeft: 'auto',
-  },
-  status: {
-    height: 15,
-    width: 15,
-    borderRadius: '50%',
-  },
-  background: (props: StyleProps) => ({
-    backgroundColor: props.card_color,
-  }),
-});
-
-/**
- * New helper function to create a std_msgs/String FlatBuffer message.
- * The input parameter 'data' is now a string.
- */
-function createStringMsg({
-  namespace,
-  topic,
-  data,
-}: {
+export interface SystemControlProps {
+  title?: string;
+  signals: SignalConfig[];    // now each SignalConfig must include a `.key`
+  buttons: ButtonConfig[];
+  rxTopic: string;
+  txTopic: string;
   namespace: string;
-  topic: string;
-  data: string;
-}): Uint8Array {
+}
+
+function createStringMsg({ namespace, topic, data }: { namespace: string; topic: string; data: string }): Uint8Array {
   const fbb = new flatbuffers.Builder();
-  const metadataOffset = fb.MsgMetadata.createMsgMetadata(
+  const metaOff = fb.MsgMetadata.createMsgMetadata(
     fbb,
     fbb.createString('std_msgs/String'),
     fbb.createString(`${namespace}/${topic}`)
   );
-  const dataOffset = fbb.createString(data);
-  const stringMessageOffset = fb.std_msgs.String.createString(
-    fbb,
-    metadataOffset,
-    dataOffset
-  );
-  fbb.finish(stringMessageOffset);
+  const dataOff = fbb.createString(data);
+  const msgOff = fb.std_msgs.String.createString(fbb, metaOff, dataOff);
+  fbb.finish(msgOff);
   return fbb.asUint8Array();
 }
 
-// (Keep your existing StatusIndicator, ThreeStatusIndicator, TwoStatusIndicator, ByteCounter components as before.)
-export function StatusIndicator(props: {
-  color: string;
-  dataVal: number;
-  matchVal: number;
-}) {
-  let isMatching = props.dataVal === props.matchVal;
-  const classes = useStyles({ card_color: isMatching ? props.color : 'gray' });
-
-  return (
-    <React.Fragment>
-      <Card variant="outlined" className={classes.card}>
-        <CardContent className={classes.cardContent}>
-          <span className={`${classes.status} ${classes.background}`} />
-        </CardContent>
-      </Card>
-    </React.Fragment>
-  );
-}
-
-function ThreeStatusIndicator(props: { dataVal: number }) {
-  return (
-    <React.Fragment>
-      <Grid container spacing={2} direction="row" justify="center">
-        <Grid item>
-          <StatusIndicator color="red" matchVal={0} dataVal={props.dataVal} />
-        </Grid>
-        <Grid item>
-          <StatusIndicator
-            color="yellow"
-            matchVal={1}
-            dataVal={props.dataVal}
-          />
-        </Grid>
-        <Grid item>
-          <StatusIndicator color="green" matchVal={2} dataVal={props.dataVal} />
-        </Grid>
-      </Grid>
-    </React.Fragment>
-  );
-}
-
-function TwoStatusIndicator(props: { dataVal: number }) {
-  return (
-    <React.Fragment>
-      <Grid container spacing={2} direction="row" justify="center">
-        <Grid item>
-          <StatusIndicator color="red" matchVal={0} dataVal={props.dataVal} />
-        </Grid>
-        <Grid item>
-          <StatusIndicator color="green" matchVal={1} dataVal={props.dataVal} />
-        </Grid>
-      </Grid>
-    </React.Fragment>
-  );
-}
-
-export function ByteCounter(props: { value: number }) {
-  return <h5>Byte Count: {props.value}</h5>;
-}
-
-export function SystemControlComponent(props: {
-  info_level: number;
-  topic: string;
-  namespace: string;
-}) {
+export const SystemControlComponent: React.FC<SystemControlProps> = ({
+  title = 'System Control',
+  signals: initialSignals,
+  buttons: buttonConfigs,
+  rxTopic,
+  txTopic,
+  namespace,
+}) => {
   const ws = useContext(WebSocketContext);
 
-  // Default system dictionary for displaying received values.
-  const defaultSystemDict = {
-    dyno_mode_req: 0,
-    byte_count: 0,
-    dyno_mode_state: 0,
-    ACC_state: 0,
-    sim_status: 0,
-  };
-  const [systemDict, setSystemDict] = useState<{
-    [key: string]: number;
-  } | null>(null);
-  const displayDict = systemDict || defaultSystemDict;
-
-  // Command dictionary for transmitting commands.
-  const defaultCommandDict = {
-    toggle_dms: 0,
-    toggle_dyno: 0,
-  };
-  const [commandDict, setCommandDict] = useState<{ [key: string]: number }>(
-    defaultCommandDict
+  // incoming state by key
+  const [stateDict, setStateDict] = useState<Record<string, number>>({});
+  // outgoing commands by key, initialize to zero
+  const [commandDict, setCommandDict] = useState(
+    buttonConfigs.reduce((acc, b) => ({ ...acc, [b.key]: 0 }), {} as Record<string, number>)
   );
 
-  // Listener for incoming messages (still expecting ByteMultiArray for display)
+  // helper to send out the entire commandDict
+  const sendCommands = useCallback(
+    (newDict: Record<string, number>) => {
+      setCommandDict(newDict);
+      const payload = Object.entries(newDict).map(([k, v]) => `${k}:${v}`).join(';');
+      const msg = createStringMsg({ namespace, topic: txTopic, data: payload });
+      console.log('Sending command with topic:', txTopic, 'and payload:', payload);
+      if (ws?.connected) ws.ws?.send(msg);
+      else console.error('WebSocket not connected');
+    },
+    [ws, namespace, txTopic]
+  );
+
+  // subscribe for incoming messages
   useRobofleetMsgListener(
-    matchTopicAnyNamespace(props.topic),
-    useCallback((buf, match) => {
-      // Get the std_msgs/String message from the FlatBuffer buffer.
-      const stringMsg = fb.std_msgs.String.getRootAsString(buf);
-      const decodedString = stringMsg.data();
-      let dict: { [key: string]: number } = {};
-      if (decodedString) {
-        decodedString.split(';').forEach((pair) => {
-          if (pair.trim() !== '') {
-            const parts = pair.split(':');
-            if (parts.length === 2) {
-              const key = parts[0].trim();
-              const val = parseInt(parts[1].trim(), 10);
-              if (!isNaN(val)) {
-                dict[key] = val;
-              }
-            }
-          }
-        });
-      }
-      console.log(dict);
-      setSystemDict(dict);
+    matchTopicAnyNamespace(rxTopic),
+    useCallback((buf) => {
+      const msg = fb.std_msgs.String.getRootAsString(buf);
+      const raw = msg.data() as string;
+      const parsed: Record<string, number> = {};
+      raw.split(';').forEach(pair => {
+        const [k, v] = pair.split(':').map(s => s.trim());
+        const n = Number(v);
+        if (k && !isNaN(n)) parsed[k] = n;
+      });
+      setStateDict(parsed);
     }, [])
   );
 
-  // When a toggle button is pressed, update commandDict and transmit it using std_msgs/String.
-  const handleCommandToggle = (
-    key: 'toggle_dms' | 'toggle_dyno' | 'sim_status'
-  ) => {
-    const newCommandDict = { ...commandDict };
-    newCommandDict[key] = newCommandDict[key] === 0 ? 1 : 0;
-    setCommandDict(newCommandDict);
-
-    // Encode the command dictionary as a string "key1:val1;key2:val2"
-    const msgString = Object.entries(newCommandDict)
-      .map(([k, v]) => `${k}:${v}`)
-      .join(';');
-    const msg = createStringMsg({
-      namespace: props.namespace,
-      topic: `/leva/initialpose`, // adjust topic as needed
-      data: msgString,
-    });
-
-    if (ws?.connected) {
-      console.log('Sending command dict:', msgString);
-      ws.ws?.send(msg);
-    } else {
-      console.error('WebSocket not connected, cannot send command.');
-    }
+  // stateless = toggle on click
+  const handleStateless = (key: string) => {
+    const next = { ...commandDict, [key]: commandDict[key] ^ 1 };
+    sendCommands(next);
+  };
+  // stateful = hold down to set 1, release to set 0
+  const handleStateful = (key: string, val: number) => {
+    const next = { ...commandDict, [key]: val };
+    sendCommands(next);
   };
 
+  // inject the live stateDict values into each SignalConfig
+  const signals = initialSignals.map(sig => ({
+    ...sig,
+    // if sig.state was a default number, override from stateDict by key
+    state: typeof sig.state === 'number'
+      ? (stateDict[sig.key] ?? sig.state)
+      : sig.state
+  }));
+
   return (
-    <React.Fragment>
-      <Grid>
-        <Grid>
-          <Typography variant="h6">System Control</Typography>
-        </Grid>
+    <Box p={2}>
+      {title && (
+        <Typography variant="h6" gutterBottom>
+          {title}
+        </Typography>
+      )}
 
-        <Grid>
-          <Typography>Toggle DMS</Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleCommandToggle('toggle_dms')}
-          >
-            Toggle DMS
-          </Button>
-          <ThreeStatusIndicator dataVal={displayDict['dyno_mode_req']} />
+      {/* Buttons */}
+      <Box mb={2}>
+        <Grid container spacing={2}>
+          {buttonConfigs.map(btn => {
+            const isStateless = btn.type === 'stateless';
+            return (
+              <Grid key={btn.key} item>
+                <Button
+                  variant={isStateless ? 'contained' : 'outlined'}
+                  color="primary"
+                  onClick={isStateless ? () => handleStateless(btn.key) : undefined}
+                  onMouseDown={!isStateless ? () => handleStateful(btn.key, 1) : undefined}
+                  onMouseUp={!isStateless ? () => handleStateful(btn.key, 0) : undefined}
+                >
+                  {btn.name}
+                </Button>
+              </Grid>
+            );
+          })}
         </Grid>
+      </Box>
 
-        <Grid>
-          <Typography>UDP Received Byte Counter:</Typography>
-          <ByteCounter value={displayDict['byte_count']} />
-        </Grid>
-
-        <Grid>
-          <Typography>Toggle CAV Dyno</Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleCommandToggle('toggle_dyno')}
-          >
-            Toggle Dyno
-          </Button>
-          <TwoStatusIndicator dataVal={displayDict['dyno_mode_state']} />
-        </Grid>
-
-        <Grid>
-          <Typography>ACC State</Typography>
-          <ThreeStatusIndicator dataVal={displayDict['ACC_state']} />
-        </Grid>
-
-        <Grid>
-          <Typography>Request for Dyno Mode</Typography>
-          <TwoStatusIndicator dataVal={displayDict['dyno_mode_req']} />
-        </Grid>
-
-        <Grid>
-          <Typography>Simulation Active Status</Typography>
-          <TwoStatusIndicator dataVal={displayDict['sim_status']} />
-        </Grid>
-      </Grid>
-    </React.Fragment>
+      {/* Signals */}
+      <SignalList signals={signals} />
+    </Box>
   );
-}
+};
