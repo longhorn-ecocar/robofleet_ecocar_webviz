@@ -71,13 +71,13 @@ export default function Overview() {
     },
     {
       name: 'Vehicle Headway',
-      key: 'vehicle_headway',
+      key: 'Vehicle_headway',
       type: 'freeform',
       state: 0
     },
     {
       name: 'Traffic Light State',
-      key: 'traffic_light_state',
+      key: 'Traffic_light_state',
       type: 'indicator',
       state: 0,
       colors: { '0': 'red', '1': 'green', '2': 'yellow' }
@@ -133,7 +133,7 @@ export default function Overview() {
 
   // 2) Define button configurations
   const cavButtonConfigs: ButtonConfig[] = [
-    { name: 'Toggle Dyno', key: 'toggle_dyno', type: 'stateless' },
+    { name: 'Toggle Dyno', key: 'dyno_hmi', type: 'stateless' },
     { name: 'Enable AIN', key: 'AIN_button', type: 'stateful' },
     { name: 'Enable AP', key: 'AP_button', type: 'stateful' },
     { name: 'Enable DMS', key: 'DMS_button', type: 'stateful' },
@@ -141,8 +141,20 @@ export default function Overview() {
 
   const pcmSignalConfigs: SignalConfig[] = [
     {
-      name: "Power Flow",
-      key: "pwr_flow",
+      name: "Motor Speed",
+      key: "motorspeed",
+      type: "freeform",
+      state: 0
+    },
+    {
+      name: "Motor Torque",
+      key: "motortorque",
+      type: "freeform",
+      state: 0
+    },
+    {
+      name: "EDU Temp",
+      key: 'inversetemp',
       type: "freeform",
       state: 0
     },
@@ -159,17 +171,12 @@ export default function Overview() {
       state: 0
     },
     {
-      name: "EDU Temp",
-      key: 'edu_temp',
-      type: "freeform",
-      state: 0
-    },
-    {
       name: "Drive Mode",
       key: 'drv_mod',
       type: "freeform",
       state: 0
     },
+
   ]
 
   const pcmButtonConfigs: ButtonConfig[] = [
